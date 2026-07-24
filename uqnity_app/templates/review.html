@@ -1,0 +1,570 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+
+            <!-- Event Info Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename='event_pics/' + event.banner_image) }}" 
+                             alt="{{ event.name }}" 
+                             class="rounded me-3" 
+                             style="width: 80px; height: 80px; object-fit: cover;">
+                        <div>
+                            <h5 class="mb-1 fw-bold">{{ event.name }}</h5>
+                            <p class="text-muted mb-0">{{ event.location }}</p>
+                            <small class="text-muted">{{ event.date.strftime('%d/%m/%Y at %H:%M') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stepper Progress -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="stepper-wrapper">
+                        <div class="stepper-item active" id="step1-indicator">
+                            <div class="step-counter">1</div>
+                            <div class="step-name">Event Review</div>
+                        </div>
+                        <div class="stepper-item" id="step2-indicator">
+                            <div class="step-counter">2</div>
+                            <div class="step-name">Organizer Review</div>
+                        </div>
+                        <div class="stepper-item" id="step3-indicator">
+                            <div class="step-counter">3</div>
+                            <div class="step-name">Complete</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Form -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="" id="reviewForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Hidden field to track current step -->
+                        <input type="hidden" name="current_step" id="current_step" value="1">
+
+                        <!-- Step 1: Event Review -->
+                        <div class="step-content" id="step1" style="display: block;">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-calendar-alt fa-3x mb-3" style="color: #9A6EAB;"></i>
+                                <h4 class="fw-bold">
+                                    {% if is_edit %}Edit{% else %}Review{% endif %} the Event
+                                </h4>
+                                <p class="text-muted">Share your experience about {{ event.name }}</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold mb-3">How would you rate this event?</label>
+                                <div class="star-rating-wrapper">
+                                    <div class="star-rating" id="event-stars">
+                                        <input type="radio" id="event-star5" name="event_rating" value="5">
+                                        <label for="event-star5" title="5 stars">★</label>
+                                        <input type="radio" id="event-star4" name="event_rating" value="4">
+                                        <label for="event-star4" title="4 stars">★</label>
+                                        <input type="radio" id="event-star3" name="event_rating" value="3">
+                                        <label for="event-star3" title="3 stars">★</label>
+                                        <input type="radio" id="event-star2" name="event_rating" value="2">
+                                        <label for="event-star2" title="2 stars">★</label>
+                                        <input type="radio" id="event-star1" name="event_rating" value="1">
+                                        <label for="event-star1" title="1 star">★</label>
+                                    </div>
+                                </div>
+                                <div class="text-danger mt-2" id="event-rating-error" style="display: none;">
+                                    <small>Please select a rating</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold mb-2">Tell others about the event</label>
+                                <textarea class="form-control" id="event_comment" name="event_comment" rows="6"
+                                    placeholder="What did you like about the event? How was the venue, atmosphere, and overall experience?"></textarea>
+                                <div class="form-text mt-2">
+                                    Minimum 10 characters. Be honest and helpful to other attendees.
+                                </div>
+                                <div class="text-danger mt-2" id="event-comment-error" style="display: none;">
+                                    <small>Please write at least 10 characters</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-primary flex-grow-1 py-2" id="next-to-step2" 
+                                        style="background-color: #9A6EAB; border-color: #9A6EAB;">
+                                    Next: Review Organizer <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary py-2 px-4">Cancel</a>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Organizer Review -->
+                        <div class="step-content" id="step2" style="display: none;">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-users fa-3x mb-3" style="color: #9A6EAB;"></i>
+                                <h4 class="fw-bold">Review the Organizer</h4>
+                                <p class="text-muted">Share your experience with {{ event.organizer.name }}</p>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold mb-3">How would you rate the organizer?</label>
+                                <div class="star-rating-wrapper">
+                                    <div class="star-rating" id="organizer-stars">
+                                        <input type="radio" id="org-star5" name="organizer_rating" value="5">
+                                        <label for="org-star5" title="5 stars">★</label>
+                                        <input type="radio" id="org-star4" name="organizer_rating" value="4">
+                                        <label for="org-star4" title="4 stars">★</label>
+                                        <input type="radio" id="org-star3" name="organizer_rating" value="3">
+                                        <label for="org-star3" title="3 stars">★</label>
+                                        <input type="radio" id="org-star2" name="organizer_rating" value="2">
+                                        <label for="org-star2" title="2 stars">★</label>
+                                        <input type="radio" id="org-star1" name="organizer_rating" value="1">
+                                        <label for="org-star1" title="1 star">★</label>
+                                    </div>
+                                </div>
+                                <div class="text-danger mt-2" id="organizer-rating-error" style="display: none;">
+                                    <small>Please select a rating</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold mb-2">Tell others about the organizer</label>
+                                <textarea class="form-control" id="organizer_comment" name="organizer_comment" rows="6"
+                                    placeholder="How was the organization? Were the volunteers responsive? How were the logistics handled?"></textarea>
+                                <div class="form-text mt-2">
+                                    Minimum 10 characters. Focus on organization quality, communication, and logistics.
+                                </div>
+                                <div class="text-danger mt-2" id="organizer-comment-error" style="display: none;">
+                                    <small>Please write at least 10 characters</small>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary py-2 px-4" id="back-to-step1">
+                                    <i class="fas fa-arrow-left me-2"></i> Back
+                                </button>
+                                <button type="button" class="btn btn-primary flex-grow-1 py-2" id="next-to-step3" 
+                                        style="background-color: #9A6EAB; border-color: #9A6EAB;">
+                                    Review Summary <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Summary and Submit -->
+                        <div class="step-content" id="step3" style="display: none;">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-check-circle fa-3x mb-3" style="color: #9A6EAB;"></i>
+                                <h4 class="fw-bold">Review Your Feedback</h4>
+                                <p class="text-muted">Please review your ratings before submitting</p>
+                            </div>
+
+                            <!-- Event Review Summary -->
+                            <div class="card mb-3 border">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold mb-0">
+                                            <i class="fas fa-calendar-alt me-2" style="color: #9A6EAB;"></i>
+                                            Event Review
+                                        </h6>
+                                        <button type="button" class="btn btn-sm btn-link" id="edit-event-review">Edit</button>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted">Rating: </span>
+                                        <span class="text-warning fw-bold" id="event-rating-summary">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted">Comment: </span>
+                                        <p class="mb-0" id="event-comment-summary">-</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Organizer Review Summary -->
+                            <div class="card mb-4 border">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="fw-bold mb-0">
+                                            <i class="fas fa-users me-2" style="color: #9A6EAB;"></i>
+                                            Organizer Review
+                                        </h6>
+                                        <button type="button" class="btn btn-sm btn-link" id="edit-organizer-review">Edit</button>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted">Rating: </span>
+                                        <span class="text-warning fw-bold" id="organizer-rating-summary">-</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted">Comment: </span>
+                                        <p class="mb-0" id="organizer-comment-summary">-</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Review Guidelines -->
+                            <div class="alert alert-light border mb-4">
+                                <h6 class="fw-bold mb-3" style="color: #9A6EAB;">
+                                    <i class="fas fa-info-circle me-2"></i>Review Guidelines
+                                </h6>
+                                <ul class="mb-0" style="font-size: 0.9rem;">
+                                    <li class="mb-1">Be honest and constructive in your feedback</li>
+                                    <li class="mb-1">Focus on your personal experience</li>
+                                    <li class="mb-1">Avoid personal attacks or inappropriate language</li>
+                                    <li class="mb-0">Help others make informed decisions about events</li>
+                                </ul>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary py-2 px-4" id="back-to-step2">
+                                    <i class="fas fa-arrow-left me-2"></i> Back
+                                </button>
+                                <button type="submit" class="btn btn-primary flex-grow-1 py-2" 
+                                        style="background-color: #9A6EAB; border-color: #9A6EAB;">
+                                    {% if is_edit %}
+                                        Update Reviews <i class="fas fa-check ms-2"></i>
+                                    {% else %}
+                                        Submit Reviews <i class="fas fa-check ms-2"></i>
+                                    {% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Stepper Styles */
+    .stepper-wrapper {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0;
+    }
+    
+    .stepper-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+    }
+    
+    .stepper-item::before {
+        position: absolute;
+        content: "";
+        border-bottom: 2px solid #ddd;
+        width: 100%;
+        top: 20px;
+        left: -50%;
+        z-index: 2;
+    }
+    
+    .stepper-item::after {
+        position: absolute;
+        content: "";
+        border-bottom: 2px solid #ddd;
+        width: 100%;
+        top: 20px;
+        left: 50%;
+        z-index: 2;
+    }
+    
+    .stepper-item .step-counter {
+        position: relative;
+        z-index: 5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #ddd;
+        margin-bottom: 6px;
+        color: white;
+        font-weight: bold;
+    }
+    
+    .stepper-item.active .step-counter {
+        background-color: #9A6EAB;
+    }
+    
+    .stepper-item.completed .step-counter {
+        background-color: #DCFCE7;
+        color: #008236;
+    }
+    
+    .stepper-item.completed::after {
+        border-bottom: 2px solid #DCFCE7;
+    }
+    
+    .stepper-item:first-child::before {
+        content: none;
+    }
+    
+    .stepper-item:last-child::after {
+        content: none;
+    }
+    
+    .step-name {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: #999;
+        text-align: center;
+    }
+    
+    .stepper-item.active .step-name {
+        color: #9A6EAB;
+        font-weight: 600;
+    }
+    
+    .stepper-item.completed .step-name {
+        color: #008236;
+    }
+
+    /* Star Rating Styles */
+    .star-rating-wrapper {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        display: inline-block;
+    }
+    
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: center;
+        gap: 5px;
+    }
+    
+    .star-rating input {
+        display: none;
+    }
+    
+    .star-rating label {
+        font-size: 2.5rem;
+        color: #ddd;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+    }
+    
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #ffc107;
+        transform: scale(1.1);
+    }
+    
+    .star-rating input:checked ~ label {
+        color: #ffc107;
+    }
+    
+    /* Card Shadow */
+    .card.shadow-sm {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    /* Form Control Focus */
+    .form-control:focus {
+        border-color: #9A6EAB;
+        box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.25);
+    }
+    
+    /* Smooth Animations */
+    .btn, .card, .form-control {
+        transition: all 0.3s ease;
+    }
+    
+    .step-content {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Star rating functionality
+        function setupStarRating(containerSelector) {
+            const container = document.querySelector(containerSelector);
+            const stars = container.querySelectorAll('label');
+            const inputs = container.querySelectorAll('input');
+            
+            inputs.forEach(input => {
+                if (input.checked) {
+                    updateStars(container, input.value);
+                }
+            });
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    updateStars(container, input.value);
+                });
+            });
+        }
+        
+        function updateStars(container, rating) {
+            const stars = container.querySelectorAll('label');
+            stars.forEach((star, index) => {
+                const starValue = stars.length - index;
+                star.style.color = starValue <= rating ? '#ffc107' : '#ddd';
+            });
+        }
+        
+        setupStarRating('#event-stars');
+        setupStarRating('#organizer-stars');
+        
+        // PRE-FILL FORM DATA FOR EDIT MODE
+        {% if is_edit and review %}
+            // Pre-fill event rating
+            const eventRatingInput = document.querySelector('input[name="event_rating"][value="{{ review.event_rating }}"]');
+            if (eventRatingInput) {
+                eventRatingInput.checked = true;
+                updateStars(document.querySelector('#event-stars'), {{ review.event_rating }});
+            }
+            
+            // Pre-fill event comment
+            document.getElementById('event_comment').value = {{ review.event_comment|tojson }};
+            
+            // Pre-fill organizer rating
+            const organizerRatingInput = document.querySelector('input[name="organizer_rating"][value="{{ review.organizer_rating }}"]');
+            if (organizerRatingInput) {
+                organizerRatingInput.checked = true;
+                updateStars(document.querySelector('#organizer-stars'), {{ review.organizer_rating }});
+            }
+            
+            // Pre-fill organizer comment
+            document.getElementById('organizer_comment').value = {{ review.organizer_comment|tojson }};
+        {% endif %}
+        
+        // Step navigation
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        
+        const step1Indicator = document.getElementById('step1-indicator');
+        const step2Indicator = document.getElementById('step2-indicator');
+        const step3Indicator = document.getElementById('step3-indicator');
+        
+        // Next to Step 2
+        document.getElementById('next-to-step2').addEventListener('click', function() {
+            const eventRating = document.querySelector('input[name="event_rating"]:checked');
+            const eventComment = document.getElementById('event_comment').value.trim();
+            
+            let isValid = true;
+            
+            if (!eventRating) {
+                document.getElementById('event-rating-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('event-rating-error').style.display = 'none';
+            }
+            
+            if (eventComment.length < 10) {
+                document.getElementById('event-comment-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('event-comment-error').style.display = 'none';
+            }
+            
+            if (isValid) {
+                step1.style.display = 'none';
+                step2.style.display = 'block';
+                step1Indicator.classList.remove('active');
+                step1Indicator.classList.add('completed');
+                step2Indicator.classList.add('active');
+            }
+        });
+        
+        // Back to Step 1
+        document.getElementById('back-to-step1').addEventListener('click', function() {
+            step2.style.display = 'none';
+            step1.style.display = 'block';
+            step2Indicator.classList.remove('active');
+            step1Indicator.classList.remove('completed');
+            step1Indicator.classList.add('active');
+        });
+        
+        // Next to Step 3
+        document.getElementById('next-to-step3').addEventListener('click', function() {
+            const organizerRating = document.querySelector('input[name="organizer_rating"]:checked');
+            const organizerComment = document.getElementById('organizer_comment').value.trim();
+            
+            let isValid = true;
+            
+            if (!organizerRating) {
+                document.getElementById('organizer-rating-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('organizer-rating-error').style.display = 'none';
+            }
+            
+            if (organizerComment.length < 10) {
+                document.getElementById('organizer-comment-error').style.display = 'block';
+                isValid = false;
+            } else {
+                document.getElementById('organizer-comment-error').style.display = 'none';
+            }
+            
+            if (isValid) {
+                // Update summary
+                const eventRating = document.querySelector('input[name="event_rating"]:checked').value;
+                const eventComment = document.getElementById('event_comment').value;
+                
+                document.getElementById('event-rating-summary').innerHTML = '★'.repeat(eventRating) + ' (' + eventRating + '/5)';
+                document.getElementById('event-comment-summary').textContent = eventComment;
+                
+                document.getElementById('organizer-rating-summary').innerHTML = '★'.repeat(organizerRating.value) + ' (' + organizerRating.value + '/5)';
+                document.getElementById('organizer-comment-summary').textContent = organizerComment;
+                
+                step2.style.display = 'none';
+                step3.style.display = 'block';
+                step2Indicator.classList.remove('active');
+                step2Indicator.classList.add('completed');
+                step3Indicator.classList.add('active');
+            }
+        });
+        
+        // Back to Step 2
+        document.getElementById('back-to-step2').addEventListener('click', function() {
+            step3.style.display = 'none';
+            step2.style.display = 'block';
+            step3Indicator.classList.remove('active');
+            step2Indicator.classList.remove('completed');
+            step2Indicator.classList.add('active');
+        });
+        
+        // Edit buttons
+        document.getElementById('edit-event-review').addEventListener('click', function() {
+            step3.style.display = 'none';
+            step1.style.display = 'block';
+            step3Indicator.classList.remove('active');
+            step2Indicator.classList.remove('completed');
+            step1Indicator.classList.remove('completed');
+            step1Indicator.classList.add('active');
+        });
+        
+        document.getElementById('edit-organizer-review').addEventListener('click', function() {
+            step3.style.display = 'none';
+            step2.style.display = 'block';
+            step3Indicator.classList.remove('active');
+            step2Indicator.classList.remove('completed');
+            step2Indicator.classList.add('active');
+        });
+    });
+</script>
+{% endblock content %}

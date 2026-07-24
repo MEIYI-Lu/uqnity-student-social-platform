@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.profile-container{min-height:100vh;padding:2rem 1rem}.profile-card{background:#fff;border-radius:16px;padding:2rem;box-shadow:0 4px 20px rgba(0,0,0,.08);margin-bottom:1.5rem}.avatar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin-top:.5rem}.avatar-btn{padding:.5rem;border:2px solid #e2e8f0;background:#fff;border-radius:8px;font-size:1.5rem;cursor:pointer;transition:all .2s}.avatar-btn:hover{border-color:#9A6EAB}.avatar-btn.selected{border-color:#9A6EAB;background:#F3E8FF}.achievement-card{display:flex;align-items:center;gap:.75rem;padding:.75rem;border-radius:8px;border:1px solid #e2e8f0}.achievement-earned{background:#ECFDF5;border-color:#A7F3D0}.achievement-locked{background:#f7fafc;opacity:.6}.stat-box{text-align:center;padding:.75rem;background:#f7fafc;border-radius:8px}.game-history{padding:.75rem;background:#f7fafc;border-radius:8px;margin-bottom:.75rem}.setting-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem;background:#f7fafc;border-radius:8px;margin-bottom:.5rem}.badge{display:inline-block;padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:500;background:#e2e8f0;color:#39455A}.hidden{display:none}
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<div class="profile-container">
+<div style="max-width:1200px;margin:0 auto">
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem">
+<button onclick="window.location.href='{{ url_for('main.home') }}'" style="padding:.5rem;background:#fff;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer"><i class="bi bi-arrow-left"></i></button>
+<div><h1 style="font-size:2rem;margin:0">👤 Your Profile</h1><p style="color:#718096;margin:0">Manage your account and view your gaming stats</p></div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem">
+<div>
+<div class="profile-card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+<h2 style="font-size:1.25rem;margin:0">Profile</h2>
+<button onclick="toggleEdit()" style="padding:.5rem;background:transparent;border:none;cursor:pointer"><i class="bi bi-pencil"></i></button>
+</div>
+
+<div id="viewMode">
+<div style="text-align:center">
+<div style="font-size:4rem;margin-bottom:.5rem">{{ current_user.image_file if current_user.image_file else '👤' }}</div>
+<h2 style="font-size:1.5rem;font-weight:700;margin:.5rem 0">{{ current_user.username }}</h2>
+<p style="font-size:.875rem;color:#718096">Game Enthusiast</p>
+</div>
+<div style="margin-top:1rem">
+<div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #e2e8f0">
+<div style="display:flex;align-items:center;gap:.5rem"><i class="bi bi-people"></i><span style="font-size:.875rem">Friends</span></div>
+<span class="badge">12</span>
+</div>
+<div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid #e2e8f0">
+<div style="display:flex;align-items:center;gap:.5rem"><i class="bi bi-controller"></i><span style="font-size:.875rem">Games Played</span></div>
+<span class="badge">45</span>
+</div>
+<div style="display:flex;justify-content:space-between;padding:.5rem 0">
+<div style="display:flex;align-items:center;gap:.5rem"><i class="bi bi-calendar"></i><span style="font-size:.875rem">Member Since</span></div>
+<span style="font-size:.875rem;color:#718096">Sep 2024</span>
+</div>
+</div>
+</div>
+
+<div id="editMode" class="hidden">
+<div style="text-align:center;margin-bottom:1rem">
+<div style="font-size:4rem;margin-bottom:.5rem" id="selectedAvatar">👤</div>
+<label style="font-weight:500;font-size:.875rem">Choose Avatar</label>
+<div class="avatar-grid">
+<button class="avatar-btn" onclick="selectAvatar('🎮')">🎮</button>
+<button class="avatar-btn" onclick="selectAvatar('🌟')">🌟</button>
+<button class="avatar-btn" onclick="selectAvatar('🎯')">🎯</button>
+<button class="avatar-btn" onclick="selectAvatar('🎨')">🎨</button>
+<button class="avatar-btn" onclick="selectAvatar('⚡')">⚡</button>
+<button class="avatar-btn" onclick="selectAvatar('🌸')">🌸</button>
+<button class="avatar-btn" onclick="selectAvatar('🎪')">🎪</button>
+<button class="avatar-btn" onclick="selectAvatar('🦋')">🦋</button>
+<button class="avatar-btn" onclick="selectAvatar('🔥')">🔥</button>
+<button class="avatar-btn" onclick="selectAvatar('💎')">💎</button>
+</div>
+</div>
+<div style="margin-bottom:1rem">
+<label style="font-weight:500;font-size:.875rem;display:block;margin-bottom:.5rem">Display Name</label>
+<input type="text" id="editName" value="{{ current_user.username }}" style="width:100%;padding:.5rem;border:2px solid #e2e8f0;border-radius:8px">
+</div>
+<div style="display:flex;gap:.5rem">
+<button onclick="saveProfile()" style="flex:1;padding:.75rem;background:#9A6EAB;color:#fff;border:none;border-radius:8px;cursor:pointer">Save</button>
+<button onclick="toggleEdit()" style="padding:.75rem 1rem;background:#fff;color:#39455A;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="profile-card">
+<h2 style="font-size:1.25rem;margin-bottom:1rem">Quick Stats</h2>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+<div class="stat-box"><div style="font-size:2rem">🏆</div><div style="font-weight:700">2,847</div><div style="font-size:.75rem;color:#718096">Total Points</div></div>
+<div class="stat-box"><div style="font-size:2rem">🥇</div><div style="font-weight:700">34</div><div style="font-size:.75rem;color:#718096">Games Won</div></div>
+<div class="stat-box"><div style="font-size:2rem">🔥</div><div style="font-weight:700">12</div><div style="font-size:.75rem;color:#718096">Best Streak</div></div>
+<div class="stat-box"><div style="font-size:2rem">📝</div><div style="font-weight:700">3</div><div style="font-size:.75rem;color:#718096">Quizzes Created</div></div>
+</div>
+</div>
+</div>
+
+<div style="grid-column:span 2">
+<div class="profile-card">
+<h2 style="font-size:1.25rem;margin-bottom:.5rem">Achievements</h2>
+<p style="color:#718096;font-size:.875rem;margin-bottom:1rem">Your gaming milestones and accomplishments</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.75rem">
+<div class="achievement-card achievement-earned"><div style="font-size:2rem">🎮</div><div style="flex:1"><h4 style="font-weight:500;font-size:.875rem;margin:0">First Steps</h4><p style="font-size:.75rem;color:#718096;margin:0">Played your first game</p></div><i class="bi bi-star-fill" style="color:#10B981"></i></div>
+<div class="achievement-card achievement-earned"><div style="font-size:2rem">🦋</div><div style="flex:1"><h4 style="font-weight:500;font-size:.875rem;margin:0">Social Butterfly</h4><p style="font-size:.75rem;color:#718096;margin:0">Added 10+ friends</p></div><i class="bi bi-star-fill" style="color:#10B981"></i></div>
+<div class="achievement-card achievement-locked"><div style="font-size:2rem;filter:grayscale(1)">🧠</div><div style="flex:1"><h4 style="font-weight:500;font-size:.875rem;margin:0">Quiz Master</h4><p style="font-size:.75rem;color:#718096;margin:0">Created 5 personality quizzes</p></div></div>
+<div class="achievement-card achievement-locked"><div style="font-size:2rem;filter:grayscale(1)">🤔</div><div style="flex:1"><h4 style="font-weight:500;font-size:.875rem;margin:0">Truth Seeker</h4><p style="font-size:.75rem;color:#718096;margin:0">Won 10 rounds of 2 Truths 1 Lie</p></div></div>
+<div class="achievement-card achievement-earned"><div style="font-size:2rem">🤷</div><div style="flex:1"><h4 style="font-weight:500;font-size:.875rem;margin:0">Decision Maker</h4><p style="font-size:.75rem;color:#718096;margin:0">Played 50 Would You Rather</p></div><i class="bi bi-star-fill" style="color:#10B981"></i></div>
+<div class="achievement-card achievement-locked"><div style="font-size:2rem;filter:grayscale(1)">🎉</div><div style="flex:1"><h4 style="font-weight:500;font-size:.875rem;margin:0">Party Host</h4><p style="font-size:.75rem;color:#718096;margin:0">Started 20+ game sessions</p></div></div>
+</div>
+</div>
+
+<div class="profile-card">
+<h2 style="font-size:1.25rem;margin-bottom:.5rem">Recent Games</h2>
+<p style="color:#718096;font-size:.875rem;margin-bottom:1rem">Your latest gaming activity</p>
+<div>
+<div class="game-history"><div style="display:flex;justify-content:space-between;align-items:center"><div><h4 style="font-weight:500;margin:0">2 Truths 1 Lie</h4><p style="font-size:.875rem;color:#718096;margin:0">2 hours ago</p></div><div style="text-align:right"><span class="badge">Won</span><p style="font-size:.75rem;color:#718096;margin:.25rem 0 0">+45 pts</p></div></div></div>
+<div class="game-history"><div style="display:flex;justify-content:space-between;align-items:center"><div><h4 style="font-weight:500;margin:0">Would You Rather</h4><p style="font-size:.875rem;color:#718096;margin:0">1 day ago</p></div><div style="text-align:right"><span class="badge">Completed</span><p style="font-size:.75rem;color:#718096;margin:.25rem 0 0">+12 pts</p></div></div></div>
+<div class="game-history"><div style="display:flex;justify-content:space-between;align-items:center"><div><h4 style="font-weight:500;margin:0">Story Building</h4><p style="font-size:.875rem;color:#718096;margin:0">2 days ago</p></div><div style="text-align:right"><span class="badge">2nd Place</span><p style="font-size:.75rem;color:#718096;margin:.25rem 0 0">+35 pts</p></div></div></div>
+</div>
+</div>
+
+<div class="profile-card">
+<h2 style="font-size:1.25rem;margin-bottom:.5rem">Settings</h2>
+<p style="color:#718096;font-size:.875rem;margin-bottom:1rem">Customize your gaming experience</p>
+<div>
+<div class="setting-row"><div><h4 style="font-weight:500;margin:0;font-size:.875rem">Sound Effects</h4><p style="font-size:.75rem;color:#718096;margin:0">Play sounds during games</p></div><input type="checkbox" checked></div>
+<div class="setting-row"><div><h4 style="font-weight:500;margin:0;font-size:.875rem">Notifications</h4><p style="font-size:.75rem;color:#718096;margin:0">Get notified about game invites</p></div><input type="checkbox" checked></div>
+<div class="setting-row"><div><h4 style="font-weight:500;margin:0;font-size:.875rem">Auto-join Friends</h4><p style="font-size:.75rem;color:#718096;margin:0">Automatically join friends' games</p></div><input type="checkbox"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function toggleEdit(){
+const view=document.getElementById('viewMode');
+const edit=document.getElementById('editMode');
+view.classList.toggle('hidden');
+edit.classList.toggle('hidden');
+}
+function selectAvatar(emoji){
+document.querySelectorAll('.avatar-btn').forEach(b=>b.classList.remove('selected'));
+event.currentTarget.classList.add('selected');
+document.getElementById('selectedAvatar').textContent=emoji;
+}
+function saveProfile(){
+const name=document.getElementById('editName').value;
+const avatar=document.getElementById('selectedAvatar').textContent;
+alert(`Profile saved! Name: ${name}, Avatar: ${avatar}`);
+toggleEdit();
+}
+</script>
+
+{% endblock content %}

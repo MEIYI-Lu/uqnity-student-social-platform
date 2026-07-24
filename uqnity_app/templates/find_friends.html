@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="hero"></header>
+<section class="section">
+  <h2>Find friends</h2>
+  <div class="cards" id="findCards">
+    {% for u in users %}
+    <div class="card" data-id="{{u.id}}">
+      <div class="card-top" style="text-align:center">
+        <div class="avatar lg placeholder">{{ u.name[0] }}</div>
+        <div class="name">{{ u.name }}</div>
+        <div class="hint">{{ u.hint }}</div>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" onclick="removeCandidateCard({{u.id}})">Ignore</button>
+        <form class="inline" method="post" action="/api/friend_request"
+              onsubmit="return sendFriendRequestAndRemove(event, {{u.id}})">
+          <input type="hidden" name="target_id" value="{{u.id}}" />
+          <button class="btn">Add</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

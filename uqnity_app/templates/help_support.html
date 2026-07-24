@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="help-container">
+        <!-- Search Help -->
+        <div class="search-help mb-4">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-0">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control border-0 bg-light" placeholder="Search for help...">
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-question-circle me-2" style="font-size: 1.5rem; color: #9A7BB0;"></i>
+                    <h3 class="mb-0">Frequently Asked Questions</h3>
+                </div>
+                <p class="text-muted mb-4">Some frequently asked questions for your reference.</p>
+                
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Can I hide my profile or make it private?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can adjust your privacy settings in the Settings page to control who can see your profile.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                How does the matching system work?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Our matching system uses your interests, courses, and preferences to suggest potential friends.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Why am I not getting any matches?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Try updating your profile with more information about your interests and courses.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Can I block or report another user?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can block or report users from their profile page if needed.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                What should I do if I encounter suspicious behavior?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Please report any suspicious behavior immediately using the report function.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                How do you prevent fake accounts or scams?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                We verify all UQ email addresses and have moderation systems in place.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item border-0 mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                                Can I control who can see my profile?
+                            </button>
+                        </h2>
+                        <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, visit Settings to customize your privacy preferences.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback Section -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-chat-heart me-2" style="font-size: 1.5rem; color: #9A7BB0;"></i>
+                    <h3 class="mb-0">Feedback</h3>
+                </div>
+                <p class="text-muted mb-4">We value your feedback on how we can serve you better.</p>
+
+                <form method="POST" action="{{ url_for('main.help_support') }}">
+                    <!-- Rating -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Please give this app a rating</label>
+                        <div class="rating-stars d-flex gap-2">
+                            <input type="radio" class="btn-check" name="rating" id="star5" value="5" required>
+                            <label class="btn btn-outline-warning" for="star5">
+                                <i class="bi bi-star-fill"></i> 5
+                            </label>
+
+                            <input type="radio" class="btn-check" name="rating" id="star4" value="4">
+                            <label class="btn btn-outline-warning" for="star4">
+                                <i class="bi bi-star-fill"></i> 4
+                            </label>
+
+                            <input type="radio" class="btn-check" name="rating" id="star3" value="3">
+                            <label class="btn btn-outline-warning" for="star3">
+                                <i class="bi bi-star-fill"></i> 3
+                            </label>
+
+                            <input type="radio" class="btn-check" name="rating" id="star2" value="2">
+                            <label class="btn btn-outline-warning" for="star2">
+                                <i class="bi bi-star-fill"></i> 2
+                            </label>
+
+                            <input type="radio" class="btn-check" name="rating" id="star1" value="1">
+                            <label class="btn btn-outline-warning" for="star1">
+                                <i class="bi bi-star-fill"></i> 1
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Appreciate -->
+                    <div class="mb-3">
+                        <label for="appreciate" class="form-label fw-bold">What do you appreciate most about our app?</label>
+                        <input type="text" class="form-control" id="appreciate" name="appreciate" 
+                               placeholder="Please type here...">
+                    </div>
+
+                    <!-- Improve -->
+                    <div class="mb-3">
+                        <label for="improve" class="form-label fw-bold">How can we improve the app?</label>
+                        <input type="text" class="form-control" id="improve" name="improve" 
+                               placeholder="Please type here...">
+                    </div>
+
+                    <!-- Comments -->
+                    <div class="mb-4">
+                        <label for="comments" class="form-label fw-bold">Your further comments</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="4" 
+                                  placeholder="Please type here..."></textarea>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary" style="background-color: #9A7BB0; border-color: #9A7BB0;">
+                        <i class="bi bi-send me-2"></i>Submit Feedback
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .help-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #f0e6f6;
+        color: #9A7BB0;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: #9A7BB0;
+    }
+
+    .rating-stars .btn-check:checked + .btn-outline-warning {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: white;
+    }
+
+    .rating-stars .btn-outline-warning:hover {
+        background-color: #ffc107;
+        border-color: #ffc107;
+        color: white;
+    }
+</style>
+{% endblock %}

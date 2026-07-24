@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.game-container{min-height:100vh;padding:2rem 1rem}.game-card{max-width:1000px;margin:0 auto 1.5rem;background:#fff;border-radius:16px;padding:2rem;box-shadow:0 4px 20px rgba(0,0,0,.08)}.prompt-card{padding:1rem;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all .2s}.prompt-card:hover{border-color:#9A6EAB;transform:scale(1.02)}.prompt-card.selected{border-color:#9A6EAB;background:#F3E8FF}.badge{display:inline-block;padding:.25rem .75rem;border-radius:20px;font-size:.75rem;font-weight:500;background:#e2e8f0;color:#39455A}.sentence-box{padding:.75rem;background:#f7fafc;border-radius:8px;margin-bottom:.5rem}.player-indicator{display:inline-flex;align-items:center;gap:.25rem;padding:.25rem .5rem;border-radius:6px;font-size:.75rem}.player-done{background:#D1FAE5;color:#065F46}.player-current{background:#DBEAFE;color:#1E40AF}.player-waiting{background:#e2e8f0;color:#718096}.story-card{border:2px solid #e2e8f0;border-radius:12px;padding:1.5rem;transition:all .3s}.story-card:hover{border-color:#9A6EAB;transform:translateY(-4px)}.story-card.user-story{border-color:#9A6EAB;background:#F3E8FF}.hidden{display:none}textarea{width:100%;padding:.75rem;border:2px solid #e2e8f0;border-radius:8px;min-height:80px;font-family:inherit}textarea:focus{outline:0;border-color:#9A6EAB}.back-btn{padding:.5rem;background:#fff;border:1px solid #e2e8f0;border-radius:8px;cursor:pointer}.back-btn:hover{background:#f7fafc}.player-hover{position:relative;display:inline-block;cursor:pointer;transition:transform .2s}.player-hover:hover{transform:scale(1.05)}.hover-card{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(-8px);width:18rem;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1rem;box-shadow:0 10px 40px rgba(0,0,0,.15);opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;z-index:1000;pointer-events:none}.player-hover:hover .hover-card{opacity:1;visibility:visible;pointer-events:auto}.hover-card::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-top:8px solid #fff}.hover-card-btn{width:100%;padding:.5rem 1rem;border-radius:6px;font-size:.875rem;font-weight:500;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem;border:none;margin-bottom:.5rem}.hover-card-btn-primary{background:#9A6EAB;color:#fff}.hover-card-btn-primary:hover{background:#744F82}.hover-card-btn-secondary{background:#fff;color:#9A6EAB;border:1px solid #9A6EAB}.hover-card-btn-secondary:hover{background:#9A6EAB;color:#fff}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<div class="game-container">
+<div id="setupPhase">
+<div style="max-width:1000px;margin:0 auto 2rem;display:flex;align-items:center;gap:1rem">
+<button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'"><i class="bi bi-arrow-left"></i></button>
+<div><h1 style="font-size:2rem;margin:0">📚 Story Building</h1><p style="color:#718096;margin:0">Collaborate to create stories!</p></div>
+</div>
+<div class="game-card">
+<h2>Choose a Story Theme</h2>
+<div id="promptsContainer" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin:2rem 0"></div>
+<button onclick="createTeams()" id="startBtn" style="width:100%;padding:1rem;background:#e2e8f0;color:#718096;border:none;border-radius:8px;font-weight:500;cursor:not-allowed">Select a Story Theme First</button>
+</div>
+</div>
+<div id="teamFormationPhase" class="hidden">
+<div style="max-width:1000px;margin:0 auto 2rem;display:flex;align-items:center;gap:1rem">
+<button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'"><i class="bi bi-arrow-left"></i></button>
+<div><h1 style="font-size:2rem;margin:0">🏗️ Teams Formed!</h1><p style="color:#718096;margin:0" id="teamFormationSubtitle"></p></div>
+</div>
+<div id="selectedThemeCard" class="game-card"></div>
+<div id="userTeamCard" class="game-card"></div>
+<div class="game-card"><div id="allTeamsGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem"></div></div>
+<div style="max-width:1000px;margin:0 auto;text-align:center">
+<button onclick="startWriting()" style="padding:1rem 2rem;background:#9A6EAB;color:#fff;border:none;border-radius:8px;font-weight:500;cursor:pointer">Start Story Building!</button>
+</div>
+</div>
+<div id="playingPhase" class="hidden">
+<div style="max-width:1000px;margin:0 auto 2rem;display:flex;align-items:center;gap:1rem">
+<button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'"><i class="bi bi-arrow-left"></i></button>
+<div><h1 style="font-size:2rem;margin:0">✍️ Story Building</h1><p style="color:#718096;margin:0">Teams writing simultaneously!</p></div>
+</div>
+<div class="game-card">
+<div style="display:flex;justify-content:space-between;margin-bottom:1rem">
+<span style="font-size:1.5rem;font-weight:700" id="timer">20s</span>
+<span id="statusText">Writing...</span>
+</div>
+<div style="height:8px;background:#e2e8f0;border-radius:4px"><div id="timerProgress" style="height:100%;background:#9A6EAB;width:0%;transition:width 1s"></div></div>
+</div>
+<div id="yourTeamProgress" class="game-card"></div>
+<div id="otherTeamsStatus" class="game-card"></div>
+<div id="userInputSection"></div>
+</div>
+<div id="votingPhase" class="hidden">
+<div style="max-width:1200px;margin:0 auto 2rem;display:flex;align-items:center;gap:1rem">
+<button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'"><i class="bi bi-arrow-left"></i></button>
+<div><h1 style="font-size:2rem;margin:0">🎭 The Big Reveal!</h1><p style="color:#718096;margin:0">Vote for your favorite story</p></div>
+</div>
+<div id="votingStoriesContainer" style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:1.5rem"></div>
+</div>
+<div id="resultsPhase" class="hidden">
+<div style="max-width:1000px;margin:0 auto 2rem;display:flex;align-items:center;gap:1rem">
+<button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'"><i class="bi bi-arrow-left"></i></button>
+<div><h1 style="font-size:2rem;margin:0">🏆 Champions!</h1></div>
+</div>
+<div id="winningStoryCard" class="game-card"></div>
+<div id="allRankingsCard" class="game-card"></div>
+<div style="max-width:1000px;margin:0 auto;display:flex;gap:1rem">
+<button onclick="resetGame()" style="flex:1;padding:1rem;background:#fff;color:#9A6EAB;border:2px solid #9A6EAB;border-radius:8px;font-weight:500;cursor:pointer">Play Again</button>
+<button onclick="window.location.href='{{ url_for('main.game_menu') }}'" style="flex:1;padding:1rem;background:#9A6EAB;color:#fff;border:none;border-radius:8px;font-weight:500;cursor:pointer">Back to Lobby</button>
+</div>
+</div>
+</div>
+<script>
+const players=[{name:'{{ current_user.username }}',avatar:'👤'},{name:'Jake',avatar:'⚡'},{name:'Sophie',avatar:'🌟'},{name:'Mike',avatar:'🎯'},{name:'Emma',avatar:'🎨'},{name:'Lily',avatar:'🌸'},{name:'Ryan',avatar:'🔥'},{name:'Maya',avatar:'🦄'},{name:'Ben',avatar:'🎪'},{name:'Zoe',avatar:'🌙'},{name:'Leo',avatar:'🎭'},{name:'Iris',avatar:'🌺'}];
+const prompts=[{id:1,theme:'Space Adventure',starter:'The spaceship shuddered...',genre:'Sci-Fi',emoji:'🚀'},{id:2,theme:'Magical Forest',starter:'The ancient tree began to glow...',genre:'Fantasy',emoji:'🌳'},{id:3,theme:'Detective Mystery',starter:'The detective noticed something strange...',genre:'Mystery',emoji:'🕵️'},{id:4,theme:'Time Travel',starter:'The clock struck thirteen...',genre:'Sci-Fi',emoji:'⏰'},{id:5,theme:'Underwater City',starter:'Deep beneath the waves...',genre:'Adventure',emoji:'🌊'},{id:6,theme:'Robot Rebellion',starter:'The household robot paused...',genre:'Sci-Fi',emoji:'🤖'}];
+let selected=null,teams=[],userTeam=null,time=20,timer=null,input='',voted=false;
+function init(){document.getElementById('promptsContainer').innerHTML=prompts.map(p=>`<div class="prompt-card" onclick="select(${p.id})"><div style="display:flex;gap:.75rem"><span style="font-size:2rem">${p.emoji}</span><div style="flex:1"><h3 style="margin:0;font-size:1rem">${p.theme}</h3><p style="font-size:.875rem;color:#718096;margin:0">"${p.starter}"</p></div></div></div>`).join('')}
+function select(id){selected=prompts.find(p=>p.id===id);document.querySelectorAll('.prompt-card').forEach(c=>c.classList.remove('selected'));event.currentTarget.classList.add('selected');const b=document.getElementById('startBtn');b.style.background='#9A6EAB';b.style.color='#fff';b.style.cursor='pointer';b.textContent='Form Teams & Start Game'}
+function shuffle(a){const s=[...a];for(let i=s.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[s[i],s[j]]=[s[j],s[i]]}return s}
+function createTeams(){if(!selected)return;const sh=shuffle(players),names=['Team Alpha','Team Beta','Team Gamma'];teams=[];for(let i=0;i<3;i++){const m=sh.slice(i*4,(i+1)*4);teams.push({id:i+1,name:names[i],members:m,story:[],idx:0,done:false,votes:0});if(m.some(x=>x.name==='{{ current_user.username }}'))userTeam=i+1}showTeams()}
+function showTeams(){document.getElementById('setupPhase').classList.add('hidden');document.getElementById('teamFormationPhase').classList.remove('hidden');const t=teams.find(x=>x.id===userTeam);document.getElementById('teamFormationSubtitle').textContent=`You're in ${t.name}!`;document.getElementById('selectedThemeCard').innerHTML=`<h2>${selected.emoji} ${selected.theme}</h2>`;document.getElementById('userTeamCard').innerHTML=`<h2>⭐ Your Team: ${t.name}</h2><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem">${t.members.map(m=>`<div style="padding:.75rem;border-radius:8px;background:${m.name==='{{ current_user.username }}'?'rgba(154,110,171,.2)':'#f7fafc'}">${m.avatar} ${m.name}</div>`).join('')}</div>`;document.getElementById('allTeamsGrid').innerHTML=teams.map(x=>`<div style="padding:1rem;border-radius:8px;border:2px solid ${x.id===userTeam?'#9A6EAB':'#e2e8f0'}">${x.name}</div>`).join('')}
+function startWriting(){document.getElementById('teamFormationPhase').classList.add('hidden');document.getElementById('playingPhase').classList.remove('hidden');startTimer();update()}
+function startTimer(){time=20;timer=setInterval(()=>{time--;document.getElementById('timer').textContent=`${time}s`;document.getElementById('timerProgress').style.width=`${((20-time)/20)*100}%`;if(time<=0)process()},1000)}
+function process(){clearInterval(timer);teams=teams.map(t=>{if(!t.done){const p=t.members[t.idx];let s;if(t.id===userTeam&&p.name==='{{ current_user.username }}'){s=input.trim()||'The story continues...';input=''}else{s=['A mysterious figure appeared.','Suddenly everything changed.','The key glowed brightly.','Hope was found.'][Math.floor(Math.random()*4)]}return{...t,story:[...t.story,s],idx:t.idx+1,done:t.idx+1>=t.members.length}}return t});if(teams.every(x=>x.done))setTimeout(()=>showVote(),2000);else{startTimer();update()}}
+function update(){const t=teams.find(x=>x.id===userTeam),p=t.members[t.idx],my=p&&p.name==='{{ current_user.username }}'&&!t.done;document.getElementById('yourTeamProgress').innerHTML=`<h2>${t.name} <span class="badge">Sentence ${t.story.length}/4</span></h2><div>${t.story.map((s,i)=>`<div class="sentence-box"><span class="badge">#${i+1}</span> ${s}</div>`).join('')}</div>`;document.getElementById('otherTeamsStatus').innerHTML=`<h2>Other Teams (Hidden)</h2>${teams.filter(x=>x.id!==userTeam).map(x=>`<div style="padding:1rem;border:1px solid #e2e8f0;border-radius:8px;margin:.5rem 0">${x.name}: ${x.story.length}/4</div>`).join('')}`;if(my){document.getElementById('userInputSection').innerHTML=`<div class="game-card"><h2>Your Turn!</h2><textarea id="inp" placeholder="Write sentence..." maxlength="200">${input}</textarea><button onclick="submit()" style="margin-top:.5rem;padding:.5rem 1.5rem;background:#9A6EAB;color:#fff;border:none;border-radius:6px;cursor:pointer">Add</button></div>`;document.getElementById('inp').addEventListener('input',e=>input=e.target.value)}else{document.getElementById('userInputSection').innerHTML=`<div class="game-card" style="text-align:center"><div style="font-size:3rem">${t.done?'✅':'⏳'}</div><p>${t.done?'Complete!':`Waiting for ${p.name}...`}</p></div>`}}
+function submit(){if(!input.trim())return;const t=teams.find(x=>x.id===userTeam);t.story.push(input.trim());t.idx++;t.done=t.idx>=t.members.length;input='';clearInterval(timer);if(teams.every(x=>x.done))setTimeout(()=>showVote(),2000);else{startTimer();update()}}
+function showVote(){clearInterval(timer);document.getElementById('playingPhase').classList.add('hidden');document.getElementById('votingPhase').classList.remove('hidden');document.getElementById('votingStoriesContainer').innerHTML=teams.map(t=>{const my=t.id===userTeam;return`<div class="story-card ${my?'user-story':''}"><h3>${t.name} ${my?'<span class="badge">Your Team</span>':''}</h3><div>${t.story.map((s,i)=>`<div class="sentence-box"><span class="badge">#${i+1}</span> ${s}</div>`).join('')}</div><button onclick="${my?'':'vote('+t.id+')'}" style="width:100%;padding:.75rem;background:${my?'#e2e8f0':voted?'#718096':'#9A6EAB'};color:#fff;border:none;border-radius:8px;cursor:${my||voted?'not-allowed':'pointer'}" ${my||voted?'disabled':''}>${my?"Can't Vote":voted?'Voted!':'Vote'}</button></div>`}).join('')}
+function vote(id){if(voted||id===userTeam)return;teams.find(t=>t.id===id).votes++;voted=true;setTimeout(()=>{teams=teams.map(t=>({...t,votes:t.votes+Math.floor(Math.random()*3)+2}));showRes()},2000)}
+function showRes(){document.getElementById('votingPhase').classList.add('hidden');document.getElementById('resultsPhase').classList.remove('hidden');const s=[...teams].sort((a,b)=>b.votes-a.votes),w=s[0];document.getElementById('winningStoryCard').innerHTML=`<div style="background:linear-gradient(135deg,rgba(251,191,36,.2),rgba(245,158,11,.2));border:2px solid #F59E0B;border-radius:12px;padding:1.5rem"><h2>🏆 Winner: ${w.name} <span class="badge" style="background:#F59E0B;color:#fff">${w.votes} votes</span></h2><div>${w.story.map((s,i)=>`<div style="padding:.75rem;background:rgba(255,255,255,.5);border-radius:8px;margin:.5rem 0"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem"><span class="badge">#${i+1}</span><span style="font-size:.75rem;color:#718096">Written by ${createPlayerHover(w.members[i],w.id===userTeam)}</span></div><p style="margin:0">${s}</p></div>`).join('')}</div></div>`;document.getElementById('allRankingsCard').innerHTML=`<h2>Rankings</h2>${s.map((t,i)=>`<div style="border:2px solid ${t.id===userTeam?'#9A6EAB':'#e2e8f0'};border-radius:12px;padding:1rem;margin:1rem 0;background:${t.id===userTeam?'#F3E8FF':'#fff'}"><h3>${['🥇','🥈','🥉'][i]} ${t.name} <span class="badge">${t.votes} votes</span></h3>${t.story.map((sen,si)=>`<div style="padding:.5rem;background:#f7fafc;border-radius:6px;margin:.5rem 0"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem"><span class="badge">#${si+1}</span><span style="font-size:.75rem;color:#718096">by ${createPlayerHover(t.members[si],t.id===userTeam)}</span></div><p style="font-size:.875rem;margin:0">${sen}</p></div>`).join('')}</div>`).join('')}`}
+function createPlayerHover(member,isUserTeam){if(!isUserTeam||member.name==='{{ current_user.username }}'){return`${member.avatar} ${member.name}`}return`<span class="player-hover">${member.avatar} ${member.name}<div class="hover-card"><div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1rem"><span style="font-size:1.5rem">${member.avatar}</span><div><h4 style="margin:0;font-weight:600">${member.name}</h4><p style="margin:0;font-size:.75rem;color:#718096">Online now</p></div></div><button class="hover-card-btn hover-card-btn-primary" onclick="startChat('${member.name}')"><i class="bi bi-chat-dots"></i> Start Chatting</button><button class="hover-card-btn hover-card-btn-secondary" onclick="addFriend('${member.name}')"><i class="bi bi-person-plus"></i> Add Friend</button></div></span>`}
+function startChat(name){alert(`Starting chat with ${name}...`)}
+function addFriend(name){alert(`Sending friend request to ${name}...`)}
+function resetGame(){selected=null;teams=[];userTeam=null;time=20;input='';voted=false;clearInterval(timer);document.getElementById('resultsPhase').classList.add('hidden');document.getElementById('setupPhase').classList.remove('hidden');init();const b=document.getElementById('startBtn');b.style.background='#e2e8f0';b.style.color='#718096';b.style.cursor='not-allowed';b.textContent='Select a Story Theme First'}
+init();
+</script>
+{% endblock content %}

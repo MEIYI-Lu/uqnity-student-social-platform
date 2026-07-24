@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4 settings-page">
+  <div class="card shadow-sm p-4">
+    <div class="profile-header text-center mb-4">
+      <img src="{{ url_for('static', filename='profile_pics/' + current_user.image_file) }}" alt="avatar" class="rounded-circle" width="100" height="100">
+      <h3 class="mt-2">{{ user.username or 'User' }}</h3>
+      <p class="text-muted">{{ user.email }}</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+      {{ form.hidden_tag() }}
+
+      <!-- Personal Info -->
+      <h5>Personal Info</h5>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          {{ form.full_name.label(class="form-label") }}
+          {{ form.full_name(class="form-control") }}
+        </div>
+        <div class="col-md-6">
+          {{ form.email.label(class="form-label") }}
+          {{ form.email(class="form-control") }}
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          {{ form.phone_number.label(class="form-label") }}
+          {{ form.phone_number(class="form-control") }}
+        </div>
+        <div class="col-md-6">
+          {{ form.account_type.label(class="form-label") }}
+          {{ form.account_type(class="form-select") }}
+        </div>
+      </div>
+
+      <!-- Avatar Upload -->
+      <label class="form-label fw-semibold text-purple">Change Avatar</label>
+      <div class="upload-area text-center p-4 border rounded-3 mb-4">
+        <i class="bi bi-cloud-arrow-up fs-3 text-purple mb-2"></i>
+        <p class="mb-1">Click to upload your avatar or drag here</p>
+        <small class="text-muted">Supported: JPG, PNG (max 10MB)</small>
+        {{ form.avatar(class="form-control mt-3") }}
+      </div>
+
+      <!-- Bio -->
+      <h5>Bio Description</h5>
+      {{ form.bio_description(class="form-control mb-4", rows=3, placeholder="Write a short description about yourself...") }}
+
+      <!-- Notifications -->
+      <h5>Notifications</h5>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          {{ form.new_match() }} {{ form.new_match.label }}<br>
+          {{ form.study_match() }} {{ form.study_match.label }}<br>
+          {{ form.events_suggestion() }} {{ form.events_suggestion.label }}
+        </div>
+        <div class="col-md-6">
+          {{ form.events_reminder() }} {{ form.events_reminder.label }}<br>
+          {{ form.events_update() }} {{ form.events_update.label }}<br>
+          {{ form.messages() }} {{ form.messages.label }}
+        </div>
+      </div>
+
+      <!-- Social Media -->
+      <h5>Social Media Links</h5>
+      <div class="row mb-3">
+        <div class="col-md-4">{{ form.facebook.label(class="form-label") }}{{ form.facebook(class="form-control") }}</div>
+        <div class="col-md-4">{{ form.instagram.label(class="form-label") }}{{ form.instagram(class="form-control") }}</div>
+        <div class="col-md-4">{{ form.discord.label(class="form-label") }}{{ form.discord(class="form-control") }}</div>
+      </div>
+
+      <!-- Academic Info -->
+      <h5>Academic Details</h5>
+      <div class="row mb-3">
+        <div class="col-md-6">{{ form.program.label(class="form-label") }}{{ form.program(class="form-control") }}</div>
+        <div class="col-md-6">{{ form.campus.label(class="form-label") }}{{ form.campus(class="form-control") }}</div>
+      </div>
+
+      <label class="form-label fw-semibold text-purple">File Upload</label>
+      <div class="upload-area text-center p-4 border rounded-3 mb-4">
+        <i class="bi bi-cloud-arrow-up fs-3 text-purple mb-2"></i>
+        <p class="mb-1">Click here to upload your study plan or timetable</p>
+        <small class="text-muted">Supported: PDF, JPG, PNG (max 10MB)</small>
+        {{ form.file_upload(class="form-control mt-3") }}
+      </div>
+
+      <!-- Matching Details -->
+      <h5>Matching Details</h5>
+      {{ form.matching_details(class="form-control mb-3", rows=3, placeholder="Add your interests, personality, and goals...") }}
+
+      <div class="mt-3">
+        <h6 class="text-purple mb-2">Suggested Tags</h6>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge rounded-pill bg-light text-purple border border-purple">Coffee</span>
+          <span class="badge rounded-pill bg-light text-purple border border-purple">Dogs</span>
+          <span class="badge rounded-pill bg-light text-purple border border-purple">R&B</span>
+          <span class="badge rounded-pill bg-light text-purple border border-purple">Traveling</span>
+          <span class="badge rounded-pill bg-light text-purple border border-purple">Outgoing</span>
+          <span class="badge rounded-pill bg-light text-purple border border-purple">Study partners</span>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="d-flex justify-content-end mt-4">
+        <button type="button" class="btn btn-light me-2">Cancel</button>
+        {{ form.submit(class="btn btn-primary px-4") }}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

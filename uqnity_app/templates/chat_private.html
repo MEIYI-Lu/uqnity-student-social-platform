@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+<script defer src="{{ url_for('static', filename='app.js') }}"></script>
+<section class="section">
+  <h2>Chats</h2>
+
+  <div class="chat-layout">
+    <div class="chat-list list-fixed" style="position:relative;">
+      <div class="tabbar">
+        <a class="tab active" href="{{ url_for('main.chats_private') }}">Private Chats</a>
+        <a class="tab" href="{{ url_for('main.chats_rooms') }}">Chatrooms</a>
+        <a class="tab" href="{{ url_for('main.chats_channels') }}">Channels</a>
+      </div>
+
+      <ul class="threads" id="privateList">
+        {% for f in friends %}
+        <li class="thread" data-kind="friend" data-id="{{f.id}}" data-name="{{f.name}}" data-fresh="{{ 'true' if f.fresh else 'false' }}">
+          <div class="avatar placeholder">{{ f.name[0] }}</div>
+          <div class="meta">
+            <div class="t-title">{{ f.name }}</div>
+            <div class="t-sub">Start a conversation</div>
+          </div>
+          <div class="t-time">9:41 AM</div>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <a href="{{ url_for('main.find_friends') }}" class="fab"
+         style="position:absolute; right:16px; bottom:16px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; text-decoration:none;">+</a>
+    </div>
+
+    <div class="chat-panel chat-panel-sticky panel-fixed">
+      <div class="room-title">
+        <div id="convTitle">Select a conversation</div>
+        <div id="convSub" class="sub"></div>
+      </div>
+
+      <div class="scroll-stack" id="chatScroll">
+        <div id="icebreaker" class="messages" style="display:none;">
+          <div class="card" style="margin:16px; background:#f1e9fb;">
+            <div style="font-weight:800; font-size:18px;">Hi, I am <b>Alex</b> 👋</div>
+            <div class="hint" style="margin-top:6px;">Conversation Starter</div>
+            <ul style="margin:10px 0 8px 18px; line-height:1.6;">
+              <li>Are you interested in having classes together?
+                <button class="icon-btn send-ice" data-text="Are you interested in having classes together?">▶</button>
+              </li>
+              <li>I noticed we both might be taking MATH1061. Have you taken any similar classes before?
+                <button class="icon-btn send-ice" data-text="I noticed we both might be taking MATH1061. Have you taken any similar classes before?">▶</button>
+              </li>
+              <li>I'm looking for someone to study MATH1061 together. Think you'd be up for it?
+                <button class="icon-btn send-ice" data-text="I'm looking for someone to study MATH1061 together. Think you'd be up for it?">▶</button>
+              </li>
+            </ul>
+            <div class="hint">Icebreakers</div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
+              <button class="btn ghost">Name that Emoji</button>
+              <button class="btn ghost">Quick Draw Challenge</button>
+              <button class="btn ghost">Would You Rather?</button>
+              <button class="btn ghost">2 Truths 1 Lie</button>
+              <button class="btn ghost">Rapid-Fire Questions</button>
+              <button class="btn ghost">Personality Quiz</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="messages" class="messages"></div>
+      </div>
+
+      <form id="composer" class="composer">
+        <button id="leftBtn" class="icon-btn" type="button">+</button>
+        <input id="msgInput" placeholder="Type your message" />
+        <button class="icon-btn" title="Send">&#10148;</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tabbar .tab{ font-size:14px; padding:6px 14px; white-space:nowrap; line-height:1.2; }
+
+  .list-fixed{ height:72vh; overflow:auto; }
+  .panel-fixed{ height:72vh; }
+
+  .chat-panel-sticky{ display:flex; flex-direction:column; min-height:0; }
+  .chat-panel-sticky .room-title{ flex:0 0 auto; }
+  .chat-panel-sticky .scroll-stack{
+    flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:8px;
+  }
+
+  .messages:empty{ display:none; }
+  .hidden{ display:none !important; }
+</style>
+
+<script>
+  (function(){
+    const ice = document.getElementById('icebreaker');
+    const messages = document.getElementById('messages');
+    const composer = document.getElementById('composer');
+
+    function maybeCollapseEmptyMessages(){
+      if(!ice || !messages) return;
+      const iceShown = ice.style.display !== 'none';
+      const hasMsgs = messages.childElementCount > 0;
+      if(iceShown && !hasMsgs){ messages.classList.add('hidden'); }
+    }
+    function expandMessages(){
+      if(messages) messages.classList.remove('hidden');
+      if(ice) ice.style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(maybeCollapseEmptyMessages, 0);
+      document.querySelectorAll('.send-ice').forEach(btn=>{
+        btn.addEventListener('click', ()=>{ setTimeout(expandMessages, 0); });
+      });
+      if(composer){
+        composer.addEventListener('submit', ()=>{ setTimeout(expandMessages, 0); });
+      }
+    });
+  })();
+</script>
+{% endblock %}

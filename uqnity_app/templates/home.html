@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+
+  <!-- 欢迎区 -->
+  <div class="p-4 rounded-xl mb-4" style="background: linear-gradient(90deg, #c9b6ff, #a88beb); color: white;">
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h2>Welcome back, {{ current_user.username or 'Alex' }}!</h2>
+        <p class="mb-0 text-light">{{ current_user.email or 's123456@uq.edu.au' }}</p>
+        <p class="mb-0">🎓 12 events attended · ⭐ 4.8 rating</p>
+      </div>
+      <div>
+        <img src="https://cdn-icons-png.flaticon.com/512/456/456212.png"
+             alt="User avatar" width="80" class="rounded-circle shadow">
+      </div>
+    </div>
+  </div>
+
+  <!-- 主体布局 -->
+  <div class="row">
+
+    <!-- 左侧栏 -->
+    <div class="col-md-4">
+
+      <!-- 认识的人 -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">👥 People You Might Know</h5>
+
+          {% for user in suggested_users %}
+          <div class="d-flex align-items-center mb-3">
+
+            <img
+              src="{{ url_for('static', filename='profile_pics/' + user.image_file) }}"
+              width="40"
+              height="40"
+              class="rounded-circle me-2"
+              style="object-fit: cover;"
+              alt="{{ user.username }}"
+            >
+
+            <div>
+              <a href="{{ url_for('main.user_profile', username=user.username) }}"
+                class="text-decoration-none text-dark fw-bold">
+                {{ user.name or user.username }}
+              </a>
+              <br>
+
+              <small>
+                {% if user.interests %}
+                  Interests: {{ user.interests }}
+                {% else %}
+                  Discover a new connection!
+                {% endif %}
+              </small>
+            </div>
+
+            <a href="{{ url_for('main.user_profile', username=user.username) }}"
+              class="btn btn-sm btn-outline-primary ms-auto">
+              View
+            </a>
+
+          </div>
+
+          {% else %}
+          <p class="text-muted mb-0">
+            No suggested users available yet.
+          </p>
+          {% endfor %}
+
+        </div>
+      </div>
+
+      <!-- 在线好友 -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">🟢 Active Now</h5>
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">🟢 Harry – <small>10 min ago</small></li>
+            <li class="mb-2">🟢 Elijah – <small>15 min ago</small></li>
+            <li>🟢 Lily – <small>19 min ago</small></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 我的活动日历 -->
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">📅 Your Events</h5>
+          <p><strong>October 2025</strong></p>
+          <ul class="list-unstyled">
+            <li>🎓 UQ Career Fair – Oct 16</li>
+            <li>🍜 Food Festival – Oct 20</li>
+            <li>🧘 Yoga in the Park – Oct 25</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右侧主区 -->
+    <div class="col-md-8">
+
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>🎉 Join these events to meet more people!</h4>
+        <a href="{{ url_for('main.all_events') }}" class="btn btn-light btn-sm">See all events →</a>
+      </div>
+
+      <!-- 推荐活动 -->
+      <div class="row">
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm h-100">
+            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" class="card-img-top">
+            <div class="card-body">
+              <h5 class="card-title">Food Festival & Cultural Exchange</h5>
+              <p class="mb-1"><strong>📍</strong> Brisbane Convention Centre</p>
+              <p class="mb-2"><small>12:00 · 320 registered</small></p>
+              <a href="#" class="btn btn-sm btn-primary">Register</a>
+              <a href="#" class="btn btn-sm btn-outline-secondary">Not interested</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+          <div class="card shadow-sm h-100">
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600" class="card-img-top">
+            <div class="card-body">
+              <h5 class="card-title">Study Group: Discrete Mathematics</h5>
+              <p class="mb-1"><strong>📍</strong> UQ Library</p>
+              <p class="mb-2"><small>14:00 · 87 registered</small></p>
+              <a href="#" class="btn btn-sm btn-primary">Register</a>
+              <a href="#" class="btn btn-sm btn-outline-secondary">Not interested</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 特别推荐活动 -->
+      <div class="card shadow-sm border-0" style="background-color: #f4eaff;">
+        <div class="card-body">
+          <h5>🌟 Featured Event</h5>
+          <h4>Brisbane Music Festival 2024</h4>
+          <p>
+            Join thousands of music lovers for the biggest festival of the year.
+            Enjoy performances, food, and unforgettable vibes.
+          </p>
+          <p>📍 South Bank · 3 days · 5000+ attending · ⭐ 4.9 rating</p>
+          <a href="#" class="btn btn-sm btn-purple" style="background-color:#a88beb; color:white;">Learn More</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

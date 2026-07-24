@@ -1,0 +1,522 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .game-container {
+        min-height: 100vh;
+        padding: 2rem 1rem;
+    }
+
+    .game-header {
+        max-width: 900px;
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .back-btn {
+        padding: 0.5rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+        background: #f7fafc;
+    }
+
+    .game-card {
+        max-width: 900px;
+        margin: 0 auto 1.5rem;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .option-btn {
+        width: 100%;
+        padding: 1.5rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: left;
+        margin-bottom: 1rem;
+    }
+
+    .option-btn:hover {
+        border-color: #9A6EAB;
+        background: #f7fafc;
+        transform: translateY(-2px);
+    }
+
+    .option-a:hover {
+        border-color: #3B82F6;
+        background: #EFF6FF;
+    }
+
+    .option-b:hover {
+        border-color: #10B981;
+        background: #ECFDF5;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        background: #e2e8f0;
+        color: #39455A;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #9A6EAB;
+        transition: width 0.3s;
+    }
+
+    .result-box {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .result-box-a {
+        background: #EFF6FF;
+        border: 1px solid #BFDBFE;
+    }
+
+    .result-box-b {
+        background: #ECFDF5;
+        border: 1px solid #A7F3D0;
+    }
+
+    .player-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.5rem;
+        background: white;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        margin: 0.25rem;
+    }
+
+    .podium-container {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .podium-item {
+        text-align: center;
+    }
+
+    .podium-platform {
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .podium-1 {
+        height: 8rem;
+        background: linear-gradient(to bottom, #FCD34D, #F59E0B);
+    }
+
+    .podium-2 {
+        height: 6rem;
+        background: linear-gradient(to bottom, #D1D5DB, #9CA3AF);
+    }
+
+    .podium-3 {
+        height: 5rem;
+        background: linear-gradient(to bottom, #FDBA74, #F97316);
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<div class="game-container">
+    <!-- Menu Phase -->
+    <div id="menuPhase">
+        <div class="game-header">
+            <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 style="font-size: 2rem; margin: 0;">🤷 Would You Rather</h1>
+                <p style="color: #718096; margin: 0;">Make tough choices and see what others pick!</p>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">How to Play</h2>
+            <p style="color: #718096; margin-bottom: 1.5rem;">Choose between two options and see how others voted</p>
+
+            <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #EFF6FF; border-radius: 8px;">
+                    <div style="width: 2rem; height: 2rem; background: #3B82F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">1</div>
+                    <span>Read the question carefully</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #ECFDF5; border-radius: 8px;">
+                    <div style="width: 2rem; height: 2rem; background: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">2</div>
+                    <span>Choose between option A or B</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #F3E8FF; border-radius: 8px;">
+                    <div style="width: 2rem; height: 2rem; background: #9A6EAB; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">3</div>
+                    <span>See how everyone else voted!</span>
+                </div>
+            </div>
+
+            <button class="start-btn" onclick="startGame()" style="width: 100%; padding: 1rem; background: #9A6EAB; color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 1.125rem; cursor: pointer;">
+                Start Playing
+            </button>
+        </div>
+    </div>
+
+    <!-- Playing Phase -->
+    <div id="playingPhase" class="hidden">
+        <div class="game-header">
+            <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div style="flex: 1;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <span id="questionEmoji" style="font-size: 1.5rem;">🤔</span>
+                    <h1 id="questionCounter" style="font-size: 1.25rem; margin: 0;">Question 1 of 12</h1>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="gameProgress" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <span class="badge" id="questionCategory">Category</span>
+                <h2 style="font-size: 1.5rem; margin: 1rem 0;">Would you rather...</h2>
+            </div>
+
+            <div id="choiceSection">
+                <button class="option-btn option-a" onclick="makeChoice('A')">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span class="badge">A</span>
+                        <span style="font-weight: 500;">Option A</span>
+                    </div>
+                    <p id="optionA" style="margin: 0;">Option text here</p>
+                </button>
+
+                <div style="text-align: center; padding: 0.5rem;">
+                    <span style="color: #718096; font-weight: 500;">OR</span>
+                </div>
+
+                <button class="option-btn option-b" onclick="makeChoice('B')">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <span class="badge">B</span>
+                        <span style="font-weight: 500;">Option B</span>
+                    </div>
+                    <p id="optionB" style="margin: 0;">Option text here</p>
+                </button>
+            </div>
+
+            <div id="resultsSection" class="hidden">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <h3 style="font-weight: 500; margin-bottom: 0.5rem;">Results are in! 📊</h3>
+                    <p style="font-size: 0.875rem; color: #718096;">Here's how everyone voted</p>
+                </div>
+
+                <div id="resultBoxA" class="result-box result-box-a">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="badge">A</span>
+                            <span style="font-weight: 500;">Option A</span>
+                        </div>
+                        <span id="percentA" style="font-weight: 500;">0%</span>
+                    </div>
+                    <p id="resultOptionA" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Option text</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressA" style="width: 0%; background: #3B82F6;"></div>
+                    </div>
+                    <div id="playersA" style="margin-top: 0.5rem;"></div>
+                </div>
+
+                <div id="resultBoxB" class="result-box result-box-b">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="badge">B</span>
+                            <span style="font-weight: 500;">Option B</span>
+                        </div>
+                        <span id="percentB" style="font-weight: 500;">0%</span>
+                    </div>
+                    <p id="resultOptionB" style="font-size: 0.875rem; margin-bottom: 0.5rem;">Option text</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressB" style="width: 0%; background: #10B981;"></div>
+                    </div>
+                    <div id="playersB" style="margin-top: 0.5rem;"></div>
+                </div>
+
+                <div style="text-align: center; padding-top: 1rem;">
+                    <p style="font-size: 0.875rem; color: #718096;" id="nextMessage">Next question coming up...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Phase -->
+    <div id="resultsPhase" class="hidden">
+        <div class="game-header">
+            <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+            <div>
+                <h1 style="font-size: 2rem; margin: 0;">🏆 Final Results!</h1>
+                <p style="color: #718096; margin: 0;">See who made the most engaging choices!</p>
+            </div>
+        </div>
+
+        <div class="game-card">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <h2 style="font-size: 1.5rem;">🥇 Top 3 Winners 🥇</h2>
+                <p style="color: #718096;">Champions of decision-making!</p>
+            </div>
+
+            <div class="podium-container" id="podiumContainer">
+                <!-- Podium will be inserted here -->
+            </div>
+        </div>
+
+        <div class="game-card">
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">All Players</h3>
+            <div id="allPlayersResults"></div>
+        </div>
+
+        <div style="max-width: 900px; margin: 0 auto; display: flex; gap: 1rem;">
+            <button onclick="resetGame()" style="flex: 1; padding: 1rem; background: white; color: #9A6EAB; border: 2px solid #9A6EAB; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                <i class="bi bi-arrow-clockwise"></i> Play Again
+            </button>
+            <button onclick="window.location.href='{{ url_for('main.game_menu') }}'" style="flex: 1; padding: 1rem; background: #9A6EAB; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer;">
+                Back to Lobby
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const mockPlayers = [
+        { name: '{{ current_user.username }}', avatar: '👤' },
+        { name: 'Jake', avatar: '⚡' },
+        { name: 'Sophie', avatar: '🌟' },
+        { name: 'Mike', avatar: '🎯' },
+        { name: 'Emma', avatar: '🎨' },
+        { name: 'Lily', avatar: '🌸' }
+    ];
+
+    const questions = [
+        { id: 1, optionA: "Have the ability to fly", optionB: "Have the ability to become invisible", category: "Superpowers", emoji: "✈️" },
+        { id: 2, optionA: "Always have to sing instead of speaking", optionB: "Always have to dance when you walk", category: "Silly", emoji: "🎭" },
+        { id: 3, optionA: "Live in a world without music", optionB: "Live in a world without movies", category: "Entertainment", emoji: "🎵" },
+        { id: 4, optionA: "Be able to read minds", optionB: "Be able to see the future", category: "Superpowers", emoji: "🧠" },
+        { id: 5, optionA: "Have unlimited money", optionB: "Have unlimited time", category: "Life", emoji: "💰" },
+        { id: 6, optionA: "Always be 10 minutes late", optionB: "Always be 20 minutes early", category: "Time", emoji: "⏰" },
+        { id: 7, optionA: "Live underwater", optionB: "Live in space", category: "Adventure", emoji: "🌊" },
+        { id: 8, optionA: "Be famous but poor", optionB: "Be rich but unknown", category: "Fame", emoji: "⭐" },
+        { id: 9, optionA: "Have pizza for every meal", optionB: "Have ice cream for every meal", category: "Food", emoji: "🍕" },
+        { id: 10, optionA: "Be able to talk to animals", optionB: "Be able to speak all human languages", category: "Communication", emoji: "🐾" },
+        { id: 11, optionA: "Live in a house made of candy", optionB: "Live in a house made of clouds", category: "Fantasy", emoji: "🏠" },
+        { id: 12, optionA: "Always have perfect weather", optionB: "Always have perfect Wi-Fi", category: "Modern Life", emoji: "☀️" }
+    ];
+
+    let currentQuestionIndex = 0;
+    let playerChoices = [];
+    let hasPlayerChosen = false;
+
+    function startGame() {
+        document.getElementById('menuPhase').classList.add('hidden');
+        document.getElementById('playingPhase').classList.remove('hidden');
+        currentQuestionIndex = 0;
+        playerChoices = [];
+        hasPlayerChosen = false;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const question = questions[currentQuestionIndex];
+        document.getElementById('questionEmoji').textContent = question.emoji;
+        document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+        document.getElementById('gameProgress').style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+        document.getElementById('questionCategory').textContent = question.category;
+        document.getElementById('optionA').textContent = question.optionA;
+        document.getElementById('optionB').textContent = question.optionB;
+        
+        document.getElementById('choiceSection').classList.remove('hidden');
+        document.getElementById('resultsSection').classList.add('hidden');
+        hasPlayerChosen = false;
+
+        // Generate AI choices
+        generateAIChoices();
+    }
+
+    function generateAIChoices() {
+        playerChoices = [];
+        mockPlayers.slice(1).forEach(player => {
+            playerChoices.push({
+                playerName: player.name,
+                avatar: player.avatar,
+                choice: Math.random() > 0.5 ? 'A' : 'B'
+            });
+        });
+    }
+
+    function makeChoice(choice) {
+        if (hasPlayerChosen) return;
+
+        playerChoices.push({
+            playerName: mockPlayers[0].name,
+            avatar: mockPlayers[0].avatar,
+            choice: choice
+        });
+
+        hasPlayerChosen = true;
+        showResults();
+
+        setTimeout(() => {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion();
+            } else {
+                showFinalResults();
+            }
+        }, 3000);
+    }
+
+    function showResults() {
+        const question = questions[currentQuestionIndex];
+        document.getElementById('choiceSection').classList.add('hidden');
+        document.getElementById('resultsSection').classList.remove('hidden');
+
+        const choicesA = playerChoices.filter(c => c.choice === 'A');
+        const choicesB = playerChoices.filter(c => c.choice === 'B');
+        const total = playerChoices.length;
+        const percentA = Math.round((choicesA.length / total) * 100);
+        const percentB = Math.round((choicesB.length / total) * 100);
+
+        document.getElementById('resultOptionA').textContent = question.optionA;
+        document.getElementById('resultOptionB').textContent = question.optionB;
+        document.getElementById('percentA').textContent = `${percentA}%`;
+        document.getElementById('percentB').textContent = `${percentB}%`;
+        document.getElementById('progressA').style.width = `${percentA}%`;
+        document.getElementById('progressB').style.width = `${percentB}%`;
+
+        document.getElementById('playersA').innerHTML = choicesA.map(p => 
+            `<span class="player-chip"><span>${p.avatar}</span><span>${p.playerName}</span></span>`
+        ).join('');
+
+        document.getElementById('playersB').innerHTML = choicesB.map(p => 
+            `<span class="player-chip"><span>${p.avatar}</span><span>${p.playerName}</span></span>`
+        ).join('');
+
+        document.getElementById('nextMessage').textContent = 
+            currentQuestionIndex < questions.length - 1 ? 'Next question coming up...' : 'Finishing up...';
+    }
+
+    function showFinalResults() {
+        document.getElementById('playingPhase').classList.add('hidden');
+        document.getElementById('resultsPhase').classList.remove('hidden');
+
+        // Calculate scores
+        const scores = mockPlayers.map(p => ({
+            ...p,
+            score: Math.floor(Math.random() * 50) + 10
+        })).sort((a, b) => b.score - a.score);
+
+        // Show podium
+        const podiumHTML = `
+            ${scores[1] ? `
+                <div class="podium-item">
+                    <div class="podium-platform podium-2">
+                        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">${scores[1].avatar}</div>
+                        <div style="color: white; font-weight: 700; font-size: 1.125rem;">2nd</div>
+                    </div>
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 12px; border: 2px solid #D1D5DB;">
+                        <div style="font-size: 1.5rem;">🥈</div>
+                        <div style="font-weight: 700;">${scores[1].name}</div>
+                        <div style="color: #9A6EAB; font-weight: 500;">${scores[1].score} points</div>
+                    </div>
+                </div>
+            ` : ''}
+            ${scores[0] ? `
+                <div class="podium-item">
+                    <div class="podium-platform podium-1">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">${scores[0].avatar}</div>
+                        <div style="color: white; font-weight: 700; font-size: 1.25rem;">1st</div>
+                    </div>
+                    <div style="background: #FEF3C7; padding: 1rem; border-radius: 12px; border: 2px solid #FCD34D;">
+                        <div style="font-size: 2rem;">🥇</div>
+                        <div style="font-weight: 700; font-size: 1.125rem;">${scores[0].name}</div>
+                        <div style="color: #9A6EAB; font-weight: 500; font-size: 1.125rem;">${scores[0].score} points</div>
+                        <span class="badge" style="margin-top: 0.5rem; background: #F59E0B; color: white;">Champion!</span>
+                    </div>
+                </div>
+            ` : ''}
+            ${scores[2] ? `
+                <div class="podium-item">
+                    <div class="podium-platform podium-3">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">${scores[2].avatar}</div>
+                        <div style="color: white; font-weight: 700;">3rd</div>
+                    </div>
+                    <div style="background: #FED7AA; padding: 1rem; border-radius: 12px; border: 2px solid #FDBA74;">
+                        <div style="font-size: 1.25rem;">🥉</div>
+                        <div style="font-weight: 700;">${scores[2].name}</div>
+                        <div style="color: #9A6EAB; font-weight: 500;">${scores[2].score} points</div>
+                    </div>
+                </div>
+            ` : ''}
+        `;
+        document.getElementById('podiumContainer').innerHTML = podiumHTML;
+
+        // Show all players
+        const allPlayersHTML = scores.map((p, i) => `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #f7fafc; border-radius: 8px; margin-bottom: 0.5rem;">
+                <div style="width: 2rem; height: 2rem; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #718096;">
+                    ${i + 1}
+                </div>
+                <span style="font-size: 1.25rem;">${p.avatar}</span>
+                <span style="flex: 1; font-weight: 500;">${p.name}</span>
+                <span class="badge" style="${i === 0 ? 'background: #9A6EAB; color: white;' : ''}">${p.score} points</span>
+            </div>
+        `).join('');
+        document.getElementById('allPlayersResults').innerHTML = allPlayersHTML;
+    }
+
+    function resetGame() {
+        document.getElementById('resultsPhase').classList.add('hidden');
+        document.getElementById('menuPhase').classList.remove('hidden');
+    }
+</script>
+
+{% endblock content %}

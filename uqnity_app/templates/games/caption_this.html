@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .game-container { min-height: 100vh; padding: 2rem 1rem; }
+    .game-header { max-width: 900px; margin: 0 auto 2rem; display: flex; align-items: center; gap: 1rem; }
+    .back-btn { padding: 0.5rem; background: white; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .back-btn:hover { background: #f7fafc; }
+    .game-title-section { flex: 1; }
+    .game-title-section h1 { font-size: 2rem; margin: 0 0 0.25rem 0; }
+    .game-subtitle { color: #718096; margin: 0; }
+    .game-card { max-width: 900px; margin: 0 auto; background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+    .card-header h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .card-description { color: #718096; margin-bottom: 1.5rem; }
+    .player-count-selector { margin-bottom: 2rem; }
+    .player-count-selector label { display: block; font-weight: 500; margin-bottom: 0.5rem; }
+    .count-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .count-btn { width: 3rem; height: 3rem; border: 2px solid #e2e8f0; background: white; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+    .count-btn:hover { border-color: #9A6EAB; }
+    .count-btn.active { background: #9A6EAB; color: white; border-color: #9A6EAB; }
+    .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem; margin-bottom: 2rem; }
+    .player-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #f7fafc; border-radius: 8px; }
+    .player-avatar { font-size: 1.25rem; }
+    .how-to-play { background: #E6F7FF; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; }
+    .how-to-play h3 { font-weight: 600; margin-bottom: 0.75rem; }
+    .how-to-play ul { list-style: none; padding: 0; margin: 0; font-size: 0.875rem; color: #4A5568; }
+    .how-to-play li { margin-bottom: 0.25rem; }
+    .start-btn { width: 100%; padding: 1rem; background: #9A6EAB; color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 1.125rem; cursor: pointer; transition: all 0.3s; }
+    .start-btn:hover { background: #744F82; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(154, 110, 171, 0.3); }
+    .progress-bar { width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin: 0.5rem 0; }
+    .progress-fill { height: 100%; background: #9A6EAB; transition: width 0.3s; }
+    .statement-input { width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; margin-top: 0.5rem; font-size: 1rem; transition: border-color 0.2s; }
+    .statement-input:focus { outline: none; border-color: #9A6EAB; }
+    .caption-option { width: 100%; text-align: left; padding: 1rem; background: #F0F9FF; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; margin-bottom: 0.75rem; }
+    .caption-option:hover { border-color: #9A6EAB; background: #E0F2FE; transform: translateX(5px); }
+    .caption-option.disabled { opacity: 0.6; cursor: not-allowed; background: #f7fafc; }
+    .caption-option.disabled:hover { border-color: #e2e8f0; background: #f7fafc; transform: none; }
+    .result-item { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem; }
+    .rank-1 { background: linear-gradient(135deg, #FFF9E6 0%, #FFE5B4 100%); border: 2px solid #FFD700; }
+    .rank-2 { background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%); border: 2px solid #C0C0C0; }
+    .rank-3 { background: linear-gradient(135deg, #FFF0E6 0%, #FFD4B4 100%); border: 2px solid #CD7F32; }
+    .badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.875rem; font-weight: 500; }
+    .badge-primary { background: #9A6EAB; color: white; }
+    .badge-secondary { background: #e2e8f0; color: #4A5568; }
+    .image-display { width: 100%; height: 24rem; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
+</style>
+
+<div class="game-container">
+    <div id="app"></div>
+</div>
+
+<script>
+    const user = {{ user | tojson }};
+    let gamePhase = 'setup';
+    let playerCount = 4;
+    let roundsTotal = 5;
+    let currentRound = 0;
+    let currentImage = null;
+    let userCaption = '';
+    let captions = [];
+    let allRoundResults = [];
+    let scores = {};
+    let hasVoted = false;
+
+    const mockPlayers = [
+        { name: user.name, avatar: user.avatar },
+        { name: 'Sarah', avatar: '🌟' },
+        { name: 'Mike', avatar: '🎯' },
+        { name: 'Emma', avatar: '🎨' },
+        { name: 'Jake', avatar: '⚡' },
+        { name: 'Lily', avatar: '🌸' },
+        { name: 'Tom', avatar: '🎪' },
+        { name: 'Zoe', avatar: '🦋' }
+    ];
+
+    function getPlayers() {
+        return mockPlayers.slice(0, playerCount);
+    }
+
+    async function startGame() {
+        const response = await fetch('/api/caption-this/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ playerCount, roundsTotal })
+        });
+        const data = await response.json();
+        
+        scores = data.scores;
+        currentRound = 0;
+        allRoundResults = [];
+        gamePhase = 'captioning';
+        
+        await startNewRound();
+    }
+
+    async function startNewRound() {
+        const response = await fetch('/api/caption-this/next-image');
+        currentImage = await response.json();
+        userCaption = '';
+        captions = [];
+        hasVoted = false;
+        render();
+    }
+
+    async function submitCaption() {
+        if (!userCaption.trim()) return;
+        
+        const response = await fetch('/api/caption-this/submit-caption', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ caption: userCaption })
+        });
+        const data = await response.json();
+        
+        captions = data.captions;
+        gamePhase = 'voting';
+        render();
+    }
+
+    async function submitVote(caption) {
+        if (hasVoted) return;
+        hasVoted = true;
+        
+        const response = await fetch('/api/caption-this/submit-vote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ 
+            caption: caption,
+            captions: captions,
+            currentScores: scores  // ADD THIS LINE
+        })
+        });
+        const data = await response.json();
+        
+        captions = data.captions;
+        
+        scores = data.scores;
+        currentRound++;  // ← Add this line instead
+        gamePhase = 'results';
+        
+        render();
+        
+        setTimeout(() => {
+            if (currentRound < roundsTotal) {
+                gamePhase = 'captioning';
+                startNewRound();
+            } else {
+                gamePhase = 'final';
+                render();
+            }
+        }, 0);
+    }
+
+    function resetGame() {
+        gamePhase = 'setup';
+        currentRound = 0;
+        userCaption = '';
+        captions = [];
+        allRoundResults = [];
+        scores = {};
+        render();
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        
+        if (gamePhase === 'setup') {
+            app.innerHTML = renderSetup();
+        } else if (gamePhase === 'captioning') {
+            app.innerHTML = renderCaptioning();
+        } else if (gamePhase === 'voting') {
+            app.innerHTML = renderVoting();
+        } else if (gamePhase === 'results') {
+            app.innerHTML = renderResults();
+        } else if (gamePhase === 'final') {
+            app.innerHTML = renderFinal();
+        }
+        
+        attachEventListeners();
+    }
+
+    function renderSetup() {
+        const players = getPlayers();
+        return `
+            <div class="game-header">
+                <button onclick="window.location.href='{{ url_for('main.game_menu') }}'" class="back-btn">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </button>
+                <div class="game-title-section">
+                    <h1>📸 Caption This</h1>
+                    <p class="game-subtitle">Create hilarious captions for random images!</p>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="card-header">
+                    <h2>Game Setup</h2>
+                    <p class="card-description">Configure your Caption This session</p>
+                </div>
+
+                <div class="player-count-selector">
+                    <label>Number of Players</label>
+                    <div class="count-buttons">
+                        ${[2,3,4,5,6,7,8].map(c => `
+                            <button onclick="playerCount=${c}; render()" class="count-btn ${playerCount === c ? 'active' : ''}">
+                                ${c}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="player-count-selector">
+                    <label>Number of Rounds</label>
+                    <div class="count-buttons">
+                        ${[3,5,7,10].map(c => `
+                            <button onclick="roundsTotal=${c}; render()" class="count-btn ${roundsTotal === c ? 'active' : ''}" style="width: auto; padding: 0 1.5rem;">
+                                ${c} rounds
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="player-count-selector">
+                    <label>Players</label>
+                    <div class="players-grid">
+                        ${players.map(p => `
+                            <div class="player-item">
+                                <span class="player-avatar">${p.avatar}</span>
+                                <span>${p.name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="how-to-play">
+                    <h3>How to Play:</h3>
+                    <ul>
+                        <li>• Write a funny caption for each image</li>
+                        <li>• Vote for your favorite caption (not your own!)</li>
+                        <li>• Most votes = most points</li>
+                        <li>• Be creative and have fun!</li>
+                    </ul>
+                </div>
+
+                <button onclick="startGame()" class="start-btn">Start Game 📸</button>
+            </div>
+        `;
+    }
+
+    function renderCaptioning() {
+        if (!currentImage) return '<div>Loading...</div>';
+        
+        return `
+            <div class="game-header">
+                <button onclick="resetGame()" class="back-btn">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </button>
+                <div class="game-title-section">
+                    <h1>📸 Caption This</h1>
+                    <p class="game-subtitle">Round ${currentRound + 1} of ${roundsTotal}</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-size: 0.875rem; color: #718096; margin: 0;">Progress</p>
+                    <p style="font-size: 1.25rem; font-weight: 600; margin: 0;">${currentRound + 1}/${roundsTotal}</p>
+                </div>
+            </div>
+
+            <div class="progress-bar" style="max-width: 900px; margin: 0 auto 2rem;">
+                <div class="progress-fill" style="width: ${(currentRound / roundsTotal) * 100}%"></div>
+            </div>
+
+            <div class="game-card">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <span class="badge badge-primary">${currentImage.category}</span>
+                    <h2 style="margin: 1rem 0;">Write a funny caption for this image!</h2>
+                </div>
+
+                <img src="${currentImage.url}" alt="Caption this!" class="image-display">
+
+                <form onsubmit="event.preventDefault(); submitCaption();">
+                    <input type="text" 
+                           id="captionInput"
+                           value="${userCaption}"
+                           oninput="userCaption=this.value; document.querySelector('.start-btn').disabled = !userCaption.trim(); document.querySelector('.start-btn').style.opacity = userCaption.trim() ? '1' : '0.5';"
+                           class="statement-input"
+                           style="font-size: 1.125rem; padding: 1rem;"
+                           placeholder="Type your hilarious caption here..."
+                           maxlength="100"
+                           autofocus>
+                    
+                    <button type="submit" class="start-btn" style="margin-top: 1rem; ${!userCaption.trim() ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${!userCaption.trim() ? 'disabled' : ''}>
+                        Submit Caption 📝
+                    </button>
+                </form>
+
+                <p style="text-align: center; color: #718096; margin-top: 1rem; font-size: 0.875rem;">Be creative! The funniest caption wins votes 😄</p>
+            </div>
+        `;
+    }
+
+    function renderVoting() {
+        if (!currentImage || captions.length === 0) return '<div>Loading...</div>';
+        
+        const userCaptionObj = captions.find(c => c.playerName === user.name);
+        
+        return `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1>📸 Vote for the Best Caption!</h1>
+                <p class="game-subtitle">Round ${currentRound + 1} of ${roundsTotal}</p>
+            </div>
+
+            <div class="game-card">
+                <img src="${currentImage.url}" alt="Caption this!" class="image-display" style="height: 16rem;">
+
+                <p style="text-align: center; font-weight: 600; margin-bottom: 1rem;">Choose your favorite caption:</p>
+
+                <div>
+                    ${captions.map(caption => {
+                        const isUserCaption = caption.playerName === user.name;
+                        return `
+                            <button onclick="${isUserCaption ? '' : `submitVote('${caption.caption.replace(/'/g, "\\'")}')`}" 
+                                    class="caption-option ${isUserCaption ? 'disabled' : ''}"
+                                    ${isUserCaption ? 'disabled' : ''}>
+                                <p style="font-size: 1.125rem; font-weight: 500; margin: 0 0 0.5rem 0;">"${caption.caption}"</p>
+                                ${isUserCaption ? '<p style="font-size: 0.875rem; color: #718096; margin: 0;">(Your caption - you can\'t vote for yourself!)</p>' : ''}
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+
+                <p style="text-align: center; color: #718096; margin-top: 1.5rem; font-size: 0.875rem;">You cannot vote for your own caption 🚫</p>
+            </div>
+        `;
+    }
+
+    function renderResults() {
+        if (!currentImage || captions.length === 0) return '<div>Loading...</div>';
+        
+        const sortedCaptions = [...captions].sort((a, b) => b.votes - a.votes);
+        const winner = sortedCaptions[0];
+        
+        return `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1>🏆 Round Results</h1>
+                <p class="game-subtitle">See how everyone voted!</p>
+            </div>
+
+            <div class="game-card">
+                <img src="${currentImage.url}" alt="Caption this!" class="image-display" style="height: 16rem;">
+
+                ${winner.votes > 0 ? `
+                    <div style="background: linear-gradient(135deg, #FFF9E6 0%, #FFE5B4 100%); border: 2px solid #FFD700; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; text-align: center;">
+                        <p style="font-size: 0.875rem; font-weight: 600; color: #4A5568; margin-bottom: 0.75rem;">🏆 Winning Caption</p>
+                        <p style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem;">"${winner.caption}"</p>
+                        <p style="font-size: 1.125rem;">
+                            <span style="font-size: 2rem;">${winner.avatar}</span>
+                            <span style="font-weight: 600; margin: 0 0.5rem;">${winner.playerName}</span>
+                            <span style="color: #718096;">${winner.votes} vote${winner.votes !== 1 ? 's' : ''}</span>
+                        </p>
+                    </div>
+                ` : ''}
+
+                <p style="font-weight: 600; margin-bottom: 0.75rem;">All Captions:</p>
+                <div>
+                    ${sortedCaptions.map((caption, idx) => `
+                        <div style="display: flex; align-items: start; justify-content: space-between; padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem; ${idx === 0 && caption.votes > 0 ? 'background: linear-gradient(135deg, #FFF9E6 0%, #FFE5B4 100%); border: 2px solid #FFD700;' : 'background: #f7fafc;'}">
+                            <div style="flex: 1;">
+                                <p style="font-weight: 500; font-size: 1.125rem; margin: 0 0 0.5rem 0;">"${caption.caption}"</p>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 1.5rem;">${caption.avatar}</span>
+                                    <span style="font-size: 0.875rem; font-weight: 500;">${caption.playerName}</span>
+                                </div>
+                            </div>
+                            <div style="margin-left: 1rem;">
+                                <div class="badge badge-primary" style="font-size: 1rem; padding: 0.5rem 0.75rem;">
+                                    ${caption.votes} vote${caption.votes !== 1 ? 's' : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <p style="text-align: center; color: #718096; margin-top: 1.5rem;">
+                    ${currentRound < roundsTotal ? 'Next round starting soon...' : 'See final results!'}
+                </p>
+            </div>
+        `;
+    }
+
+    function renderFinal() {
+        const players = getPlayers();
+        const sortedPlayers = players.sort((a, b) => (scores[b.name] || 0) - (scores[a.name] || 0));
+        const winner = sortedPlayers[0];
+
+        return `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🏆</div>
+                <h1>Game Over!</h1>
+                <p class="game-subtitle">The comedy show has ended!</p>
+            </div>
+
+            <div class="game-card rank-1" style="text-align: center; margin-bottom: 1.5rem;">
+                <p style="font-weight: 600; margin-bottom: 0.75rem;">🎭 Caption Champion</p>
+                <p style="font-size: 4rem; margin: 0;">${winner.avatar}</p>
+                <h2 style="margin: 0.5rem 0;">${winner.name}</h2>
+                <p style="font-size: 2rem; font-weight: 600; margin: 0;">${scores[winner.name]} points</p>
+            </div>
+
+            <div class="game-card" style="margin-bottom: 1.5rem;">
+                <h2 style="margin-bottom: 1rem;">Final Scores</h2>
+                ${sortedPlayers.map((player, idx) => `
+                    <div class="result-item ${idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : ''}" style="background: ${idx > 2 ? '#f7fafc' : ''};">
+                        <span class="badge badge-secondary">#${idx + 1}</span>
+                        <span style="font-size: 2rem;">${player.avatar}</span>
+                        <span style="flex: 1; font-weight: 500;">${player.name}</span>
+                        <span style="font-size: 1.25rem; font-weight: 600;">${scores[player.name]} pts</span>
+                    </div>
+                `).join('')}
+            </div>
+<div style="display: flex; gap: 0.75rem; max-width: 900px; margin: 0 auto; align-items: center;">
+    <button onclick="resetGame(); startGame()" class="start-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Play Again
+    </button>
+    <button onclick="window.location.href='{{ url_for('main.game_menu') }}'" class="back-btn" style="padding: 1rem;">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+    </button>
+</div>
+        `;
+    }
+
+    function attachEventListeners() {
+        const input = document.getElementById('captionInput');
+        if (input) {
+            input.focus();
+        }
+    }
+
+    // Initial render
+    render();
+</script>
+{% endblock content %}

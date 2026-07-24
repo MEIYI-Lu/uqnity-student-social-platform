@@ -1,0 +1,581 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .game-container {
+        min-height: 100vh;
+        padding: 2rem 1rem;
+    }
+    .game-header {
+        max-width: 900px;
+        margin: 0 auto 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .back-btn {
+        padding: 0.5rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .back-btn:hover {
+        background: #f7fafc;
+    }
+    .game-title-section {
+        flex: 1;
+    }
+    .game-title-section h1 {
+        font-size: 2rem;
+        margin: 0 0 0.25rem 0;
+    }
+    .game-subtitle {
+        color: #718096;
+        margin: 0;
+    }
+    .game-card {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+    .card-header h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    .card-description {
+        color: #718096;
+        margin-bottom: 1.5rem;
+    }
+    .player-count-selector {
+        margin-bottom: 2rem;
+    }
+    .player-count-selector label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    .count-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .count-btn {
+        width: 3rem;
+        height: 3rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .count-btn:hover {
+        border-color: #9A6EAB;
+    }
+    .count-btn.active {
+        background: #9A6EAB;
+        color: white;
+        border-color: #9A6EAB;
+    }
+    .players-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    .player-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f7fafc;
+        border-radius: 8px;
+    }
+    .player-avatar {
+        font-size: 1.25rem;
+    }
+    .how-to-play {
+        background: #EBF4FF;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+    .how-to-play h3 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+    .how-to-play ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        font-size: 0.875rem;
+        color: #4A5568;
+    }
+    .how-to-play li {
+        margin-bottom: 0.25rem;
+    }
+    .start-btn {
+        width: 100%;
+        padding: 1rem;
+        background: #9A6EAB;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 1.125rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .start-btn:hover {
+        background: #744F82;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(154, 110, 171, 0.3);
+    }
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+    .progress-fill {
+        height: 100%;
+        background: #9A6EAB;
+        transition: width 0.3s;
+    }
+    .statement-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+    .statement-input:focus {
+        outline: none;
+        border-color: #9A6EAB;
+    }
+    .statement-btn {
+        width: 100%;
+        text-align: left;
+        padding: 1rem;
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 0.5rem;
+    }
+    .statement-btn:hover {
+        border-color: #9A6EAB;
+        background: #f7fafc;
+    }
+    .result-item {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .rank-1 {
+        background: linear-gradient(135deg, #FFF9E6 0%, #FFE5B4 100%);
+        border: 2px solid #FFD700;
+    }
+    .rank-2 {
+        background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+        border: 2px solid #C0C0C0;
+    }
+    .rank-3 {
+        background: linear-gradient(135deg, #FFF0E6 0%, #FFD4B4 100%);
+        border: 2px solid #CD7F32;
+    }
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .badge-primary {
+        background: #9A6EAB;
+        color: white;
+    }
+    .badge-secondary {
+        background: #e2e8f0;
+        color: #4A5568;
+    }
+</style>
+
+<div class="game-container">
+    <div id="app"></div>
+</div>
+
+<script>
+    const user = {{ user | tojson }};
+    let gamePhase = 'setup';
+    let playerCount = 4;
+    let roundsTotal = 7;
+    let sessionId = null;  
+    let currentRound = 0;
+    let currentStatement = null;
+    let responses = [];
+    let allRoundResults = [];
+    let scores = {};
+
+    const mockPlayers = [
+        { name: user.name, avatar: user.avatar },
+        { name: 'Sarah', avatar: '🌟' },
+        { name: 'Mike', avatar: '🎯' },
+        { name: 'Emma', avatar: '🎨' },
+        { name: 'Jake', avatar: '⚡' },
+        { name: 'Lily', avatar: '🌸' },
+        { name: 'Tom', avatar: '🎪' },
+        { name: 'Zoe', avatar: '🦋' }
+    ];
+
+    function getPlayers() {
+        return mockPlayers.slice(0, playerCount);
+    }
+
+async function startGame() {
+    const response = await fetch('/api/never-have/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerCount, roundsTotal })
+    });
+    const data = await response.json();
+    
+    sessionId = data.session_id;  // Store the session_id
+    currentRound = 0;
+    allRoundResults = [];
+    scores = {};
+    gamePhase = 'revealing';
+    
+    await startNewRound();
+}
+
+    async function startNewRound() {
+        const response = await fetch('/api/never-have/next-round');
+        currentStatement = await response.json();
+        responses = [];
+        render();
+    }
+
+async function submitResponse(haveDone) {
+    const response = await fetch('/api/never-have/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            haveDone, 
+            statement: currentStatement,
+            session_id: sessionId  // Pass session_id
+        })
+    });
+    const data = await response.json();
+    
+    responses = data.responses;
+    currentRound = data.currentRound;  // This will now properly increment!
+    
+    setTimeout(() => {
+        gamePhase = 'results';
+        render();
+    }, 500);
+}
+
+    async function nextRound() {
+        if (currentRound < roundsTotal) {
+            gamePhase = 'revealing';
+            await startNewRound();
+        } else {
+            await calculateFinalScores();
+            gamePhase = 'final';
+            render();
+        }
+    }
+
+    async function calculateFinalScores() {
+        const response = await fetch('/api/never-have/final-scores');
+        const data = await response.json();
+        scores = data.scores;
+        allRoundResults = data.allRoundResults;
+    }
+
+    function resetGame() {
+        gamePhase = 'setup';
+        currentRound = 0;
+        responses = [];
+        allRoundResults = [];
+        scores = {};
+        render();
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        
+        if (gamePhase === 'setup') {
+            app.innerHTML = renderSetup();
+        } else if (gamePhase === 'revealing') {
+            app.innerHTML = renderRevealing();
+        } else if (gamePhase === 'results') {
+            app.innerHTML = renderResults();
+        } else if (gamePhase === 'final') {
+            app.innerHTML = renderFinal();
+        }
+    }
+
+    function renderSetup() {
+        const players = getPlayers();
+        return `
+            <div class="game-header">
+                <button onclick="window.location.href='{{ url_for('main.game_menu') }}'" class="back-btn">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </button>
+                <div class="game-title-section">
+                    <h1>🙈 Never Have I Ever</h1>
+                    <p class="game-subtitle">Discover shared experiences and unique stories!</p>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="card-header">
+                    <h2>Game Setup</h2>
+                    <p class="card-description">Configure your Never Have I Ever session</p>
+                </div>
+
+                <div class="player-count-selector">
+                    <label>Number of Players</label>
+                    <div class="count-buttons">
+                        ${[2,3,4,5,6,7,8].map(c => `
+                            <button onclick="playerCount=${c}; render()" class="count-btn ${playerCount === c ? 'active' : ''}">
+                                ${c}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="player-count-selector">
+                    <label>Number of Rounds</label>
+                    <div class="count-buttons">
+                        ${[5,7,10,15].map(c => `
+                            <button onclick="roundsTotal=${c}; render()" class="count-btn ${roundsTotal === c ? 'active' : ''}" style="width: auto; padding: 0 1.5rem;">
+                                ${c} rounds
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="player-count-selector">
+                    <label>Players</label>
+                    <div class="players-grid">
+                        ${players.map(p => `
+                            <div class="player-item">
+                                <span class="player-avatar">${p.avatar}</span>
+                                <span>${p.name}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="how-to-play">
+                    <h3>How to Play:</h3>
+                    <ul>
+                        <li>• Read each "Never have I ever..." statement</li>
+                        <li>• Choose if you HAVE or HAVEN'T done it</li>
+                        <li>• See who else shares your experiences</li>
+                        <li>• Unique experiences score bonus points!</li>
+                    </ul>
+                </div>
+
+                <button onclick="startGame()" class="start-btn">Start Game 🙈</button>
+            </div>
+        `;
+    }
+
+    function renderRevealing() {
+        if (!currentStatement) return '<div>Loading...</div>';
+        
+        return `
+            <div class="game-header">
+                <button onclick="resetGame()" class="back-btn">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                </button>
+                <div class="game-title-section">
+                    <h1>🙈 Never Have I Ever</h1>
+                    <p class="game-subtitle">Round ${currentRound + 1} of ${roundsTotal}</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-size: 0.875rem; color: #718096; margin: 0;">Progress</p>
+                    <p style="font-size: 1.25rem; font-weight: 600; margin: 0;">${currentRound + 1}/${roundsTotal}</p>
+                </div>
+            </div>
+
+            <div class="progress-bar" style="max-width: 900px; margin: 0 auto 2rem;">
+                <div class="progress-fill" style="width: ${(currentRound / roundsTotal) * 100}%"></div>
+            </div>
+
+            <div class="game-card" style="text-align: center;">
+                <span class="badge badge-primary">${currentStatement.category}</span>
+                <h2 style="color: #718096; margin: 1rem 0 0.5rem;">Never have I ever...</h2>
+                <h1 style="font-size: 2rem; margin-bottom: 2rem;">${currentStatement.statement}</h1>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button onclick="submitResponse(true)" class="start-btn" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; height: 6rem;">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                        </svg>
+                        <span>I Have</span>
+                    </button>
+                    <button onclick="submitResponse(false)" class="count-btn" style="width: 100%; height: 6rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1.125rem;">
+                        <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018a2 2 0 01.485.06l3.76.94m-7 10v5a2 2 0 002 2h.096c.5 0 .905-.405.905-.904 0-.715.211-1.413.608-2.008L17 13V4m-7 10h2m5-10h2a2 2 0 012 2v6a2 2 0 01-2 2h-2.5"/>
+                        </svg>
+                        <span>I Haven't</span>
+                    </button>
+                </div>
+
+                <p style="color: #718096; margin-top: 1.5rem; font-size: 0.875rem;">Be honest! This is all in good fun 😊</p>
+            </div>
+        `;
+    }
+
+    function renderResults() {
+        if (!currentStatement) return '<div>Loading...</div>';
+        
+        const haveResponses = responses.filter(r => r.haveDone);
+        const haventResponses = responses.filter(r => !r.haveDone);
+        const havePercent = (haveResponses.length / responses.length) * 100;
+        const haventPercent = (haventResponses.length / responses.length) * 100;
+
+        return `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h1>Round Results</h1>
+                <p class="game-subtitle">See who's experienced this!</p>
+            </div>
+
+            <div class="game-card">
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <span class="badge badge-primary">${currentStatement.category}</span>
+                    <h2 style="margin-top: 0.75rem;">Never have I ever ${currentStatement.statement}</h2>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-weight: 500;">👍 I Have Done This</span>
+                        <span style="font-weight: 600; color: #48BB78;">${Math.round(havePercent)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${havePercent}%; background: #48BB78;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="font-weight: 500;">👎 I Haven't Done This</span>
+                        <span style="font-weight: 600; color: #718096;">${Math.round(haventPercent)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${haventPercent}%; background: #718096;"></div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    ${haveResponses.length > 0 ? `
+                        <div>
+                            <p style="font-weight: 600; margin-bottom: 0.75rem;">👍 Have (${haveResponses.length})</p>
+                            ${haveResponses.map(r => `
+                                <div class="player-item" style="background: #F0FFF4; margin-bottom: 0.5rem;">
+                                    <span class="player-avatar">${r.avatar}</span>
+                                    <span style="font-size: 0.875rem;">${r.playerName}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${haventResponses.length > 0 ? `
+                        <div>
+                            <p style="font-weight: 600; margin-bottom: 0.75rem;">👎 Haven't (${haventResponses.length})</p>
+                            ${haventResponses.map(r => `
+                                <div class="player-item" style="margin-bottom: 0.5rem;">
+                                    <span class="player-avatar">${r.avatar}</span>
+                                    <span style="font-size: 0.875rem;">${r.playerName}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+
+                <button onclick="nextRound()" class="start-btn">
+                    ${currentRound < roundsTotal ? 'Next Round →' : 'See Final Results'}
+                </button>
+            </div>
+        `;
+    }
+
+    function renderFinal() {
+        const players = getPlayers();
+        const sortedPlayers = players.sort((a, b) => (scores[b.name] || 0) - (scores[a.name] || 0));
+        const winner = sortedPlayers[0];
+
+        const userResults = allRoundResults.map(r => r.responses.find(res => res.playerName === user.name));
+        const userHasCount = userResults.filter(r => r?.haveDone).length;
+        const userHasntCount = userResults.filter(r => !r?.haveDone).length;
+
+        return `
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🏆</div>
+                <h1>Game Over!</h1>
+                <p class="game-subtitle">We've learned so much about each other!</p>
+            </div>
+
+            <div class="game-card rank-1" style="text-align: center; margin-bottom: 1.5rem;">
+                <p style="font-weight: 600; margin-bottom: 0.75rem;">🏆 Most Interesting Player</p>
+                <p style="font-size: 4rem; margin: 0;">${winner.avatar}</p>
+                <h2 style="margin: 0.5rem 0;">${winner.name}</h2>
+                <p style="font-size: 2rem; font-weight: 600; margin: 0;">${scores[winner.name]} points</p>
+            </div>
+
+            <div class="game-card" style="margin-bottom: 1.5rem;">
+                <h2 style="margin-bottom: 1rem;">Final Scores</h2>
+                ${sortedPlayers.map((player, idx) => `
+                    <div class="result-item ${idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : ''}" style="background: ${idx > 2 ? '#f7fafc' : ''};">
+                        <span class="badge badge-secondary">#${idx + 1}</span>
+                        <span style="font-size: 2rem;">${player.avatar}</span>
+                        <span style="flex: 1; font-weight: 500;">${player.name}</span>
+                        <span style="font-size: 1.25rem; font-weight: 600;">${scores[player.name]} pts</span>
+                    </div>
+                `).join('')}
+            </div>
+
+           
+<div style="display: flex; gap: 0.75rem; max-width: 900px; margin: 0 auto; align-items: center;">
+    <button onclick="resetGame(); startGame()" class="start-btn" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Play Again
+    </button>
+    <button onclick="window.location.href='{{ url_for('main.game_menu') }}'" class="back-btn" style="padding: 1rem;">
+        <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+    </button>
+</div>
+        `;
+    }
+
+    // Initial render
+    render();
+</script>
+{% endblock content %}

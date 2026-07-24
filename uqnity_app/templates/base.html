@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if title %}
+    <title>UQnity - {{ title }}</title>
+    {% else %}
+    <title>UQnity</title>
+    {% endif %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="logo">UQ</div>
+                    <span class="brand-name">UQnity</span>
+                </div>
+                <button class="toggle-btn-inner" id="toggleBtn">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" class="form-control" placeholder="Search...">
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="nav-menu">
+            <ul class="nav flex-column">
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.home') }}" class="base-nav-link {% if request.endpoint == 'main.home' %}active{% endif %}">
+                        <i class="bi bi-house-door-fill"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.my_reviews') }}" class="base-nav-link {% if request.endpoint == 'main.my_reviews' %}active{% endif %}">
+                        <i class="bi bi-star-fill"></i>
+                        <span>My Reviews</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.chats_private') }}"  class="base-nav-link {% if request.endpoint == 'main.chats_private' %}active{% endif %}">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span>Chats</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.all_events') }}" class="base-nav-link {% if request.endpoint == 'main.all_events' %}active{% endif %}">
+                        <i class="bi bi-calendar-event-fill"></i>
+                        <span>All Events</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.posts') }}" class="base-nav-link {% if request.endpoint == 'main.posts' %}active{% endif %}">
+                        <i class="bi bi-pencil-square"></i>
+                        <span>Posts</span>
+                     </a>
+                </li>
+
+                <li class="base-nav-item">
+                    <a href="#" class="base-nav-link {% if request.endpoint == 'main.notifications' %}active{% endif %}" id="openNotifications">
+                        <i class="bi bi-bell-fill"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.game_menu') }}" class="base-nav-link {% if request.endpoint == 'main.game_menu' %}active{% endif %}">
+                        <i class="bi bi-controller"></i>
+                        <span>Games</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.settings') }}" class="base-nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li class="base-nav-item">
+                    <a href="{{ url_for('main.help_support') }}" class="base-nav-link {% if request.endpoint == 'main.help_support' %}active{% endif %}">
+                        <i class="bi bi-question-circle-fill"></i>
+                        <span>Help & Support</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ url_for('static', filename='profile_pics/' + current_user.image_file) }}" alt="Alex Alex"
+                    class="user-avatar">
+                <div class="flex-grow-1">
+                    <p class="user-name">{{ current_user.username }}</p>
+                    <p class="user-role">Student</p>
+                </div>
+                <form action="{{ url_for('main.logout') }}" method="POST">
+                    <button type="submit" class="logout-btn">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Floating Toggle Button (visible when sidebar is closed) -->
+    <button class="toggle-btn-floating" id="toggleBtnFloating">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const toggleBtnFloating = document.getElementById('toggleBtnFloating');
+        const overlay = document.getElementById('overlay');
+
+        function toggleSidebar() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        }
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        toggleBtnFloating.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('open');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+        });
+
+        // Active nav link handling
+        document.querySelectorAll('.base-nav-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                // Only prevent default if it's a placeholder link (#)
+                if (this.getAttribute('href') === '#') {
+                    e.preventDefault();
+                }
+                document.querySelectorAll('.base-nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+    <!-- Notification Modal -->
+    <div id="modal" class="modal hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 9999;">
+      <div class="modal-card" style="background: #fff; border: 1px solid #dee2e6; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: min(520px, 90vw); max-height: 80vh; display: flex; flex-direction: column;">
+        <div style="padding: 14px 16px; border-bottom: 1px solid #dee2e6; font-weight: 800; display: flex; justify-content: space-between; align-items: center;">
+          <span>Notifications</span>
+          <button id="closeModalX" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+        </div>
+        <div id="notifList" style="padding: 12px; overflow: auto; max-height: 60vh;">
+          <div style="padding: 18px; border: 1px dashed #dee2e6; border-radius: 12px; color: #666; text-align: center;">Loading...</div>
+        </div>
+        <div style="padding: 12px; border-top: 1px solid #dee2e6; display: flex; gap: 8px; justify-content: flex-end;">
+          <button id="clearNotif" class="btn btn-outline-secondary">Clear All</button>
+          <button id="closeModal" class="btn btn-primary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    // Toast notification
+    function showToast(text) {
+      const t = document.createElement('div');
+      Object.assign(t.style, {
+        position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+        background: '#fff', padding: '10px 14px', border: '1px solid #dee2e6',
+        borderRadius: '8px', zIndex: '9999', boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+      });
+      t.textContent = text;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1600);
+    }
+
+    // Notification System
+    (function() {
+      const openBtn = document.getElementById('openNotifications');
+      const modal = document.getElementById('modal');
+      const closeBtn = document.getElementById('closeModal');
+      const closeX = document.getElementById('closeModalX');
+      const clearBtn = document.getElementById('clearNotif');
+      const list = document.getElementById('notifList');
+
+      if (!openBtn || !modal) {
+        console.error('Notification elements not found');
+        return;
+      }
+
+      function loadNotifications() {
+        list.innerHTML = '<div style="padding: 18px; text-align: center; color: #666;">Loading...</div>';
+        
+        fetch('/api/notifications')
+          .then(r => r.json())
+          .then(data => {
+            list.innerHTML = '';
+            
+            if (!data.items || data.items.length === 0) {
+              list.innerHTML = '<div style="padding: 18px; border: 1px dashed #dee2e6; border-radius: 12px; color: #666; text-align: center;">No notifications</div>';
+              return;
+            }
+            
+            data.items.forEach(n => {
+              const card = document.createElement('div');
+              card.style.cssText = 'margin: 8px 0; padding: 16px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px;';
+              
+              card.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 4px;">New friend request</div>
+                <div style="color: #666; font-size: 14px; margin-bottom: 12px;">${n.text}</div>
+              `;
+              
+              const actions = document.createElement('div');
+              actions.style.cssText = 'display: flex; gap: 8px;';
+              
+              const acceptBtn = document.createElement('button');
+              acceptBtn.className = 'btn btn-sm';
+              acceptBtn.style.cssText = 'background: #9A7BB0; color: white; border: none;';
+              acceptBtn.textContent = 'Accept';
+              acceptBtn.onclick = function() {
+                const fd = new FormData();
+                fd.append('name', n.from_name);
+                fetch('/api/notif/accept', { method: 'POST', body: fd })
+                  .then(r => r.json())
+                  .then(res => {
+                    if (res.ok) {
+                      showToast('Friend added!');
+                      loadNotifications();
+                    }
+                  })
+                  .catch(err => console.error('Accept error:', err));
+              };
+              
+              const declineBtn = document.createElement('button');
+              declineBtn.className = 'btn btn-outline-secondary btn-sm';
+              declineBtn.textContent = 'Decline';
+              declineBtn.onclick = function() {
+                fetch('/api/notifications/clear', { method: 'POST' })
+                  .then(() => loadNotifications());
+              };
+              
+              actions.appendChild(acceptBtn);
+              actions.appendChild(declineBtn);
+              card.appendChild(actions);
+              list.appendChild(card);
+            });
+          })
+          .catch(err => {
+            console.error('Error loading notifications:', err);
+            list.innerHTML = '<div style="padding: 18px; color: red; text-align: center;">Failed to load</div>';
+          });
+      }
+
+      function openModal() {
+        modal.style.display = 'flex';
+        loadNotifications();
+      }
+
+      function closeModalFunc() {
+        modal.style.display = 'none';
+      }
+
+      openBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        openModal();
+      });
+
+      closeBtn.addEventListener('click', closeModalFunc);
+      closeX.addEventListener('click', closeModalFunc);
+
+      clearBtn.addEventListener('click', function() {
+        fetch('/api/notifications/clear', { method: 'POST' })
+          .then(() => loadNotifications());
+      });
+
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          closeModalFunc();
+        }
+      });
+    })();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Copy all the CSS from the previous lobby template */
+    .game-lobby { min-height: 100vh; padding: 2rem 1rem; }
+    .game-header { max-width: 1200px; margin: 0 auto 2rem; }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .header-title-section { display: flex; align-items: center; gap: 1rem; }
+    .game-icon-box { padding: 0.75rem; background: #9A6EAB; color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .game-icon-box i { font-size: 2rem; }
+    .header-title h1 { font-size: 2rem; font-weight: 700; color: #39455A; margin: 0; }
+    .header-title p { color: #718096; margin: 0; font-size: 0.95rem; }
+    .user-stats-card { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.5rem; background: white; border-radius: 12px; border: 1px solid #e2e8f0; flex-wrap: wrap; }
+    .user-welcome { display: flex; align-items: center; gap: 0.5rem; }
+    .user-avatar-emoji { font-size: 2rem; }
+    .user-stats { display: flex; align-items: center; gap: 1.5rem; font-size: 0.875rem; color: #718096; }
+    .stat-item { display: flex; align-items: center; gap: 0.5rem; }
+    .games-main { max-width: 1200px; margin: 0 auto; }
+    .games-section { margin-bottom: 3rem; }
+    .games-intro { margin-bottom: 1.5rem; }
+    .games-intro h2 { font-size: 1.75rem; font-weight: 700; color: #39455A; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+    .premium-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.75rem; background: #8b5cf6; color: white; border-radius: 20px; font-size: 0.75rem; font-weight: 500; }
+    .games-intro p { color: #718096; }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .game-card { background: white; border: 2px solid #e2e8f0; border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: all 0.3s ease; text-decoration: none; color: inherit; display: block; position: relative; }
+    .game-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 20px 40px rgba(154, 110, 171, 0.15); border-color: #9A6EAB; }
+    .game-card.premium { background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(59, 130, 246, 0.05) 100%); }
+    .game-card.locked .game-emoji { opacity: 0.6; }
+    .lock-badge { position: absolute; top: 1rem; right: 1rem; background: rgba(0, 0, 0, 0.85); color: white; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.25rem; z-index: 10; }
+    .unlocked-badge { position: absolute; top: 1rem; right: 1rem; background: #10b981; color: white; padding: 0.5rem 0.75rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; z-index: 10; }
+    .game-card-header { text-align: center; margin-bottom: 1rem; }
+    .game-emoji { font-size: 3rem; margin-bottom: 0.75rem; }
+    .game-title { font-size: 1.25rem; font-weight: 600; color: #39455A; margin-bottom: 0.5rem; }
+    .game-description { font-size: 0.875rem; color: #718096; margin-bottom: 1rem; }
+    .game-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .game-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.75rem; background: rgba(255, 255, 255, 0.9); border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.75rem; color: #39455A; }
+    .game-play-btn { width: 100%; padding: 0.75rem; background: #9A6EAB; color: white; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+    .game-play-btn:hover { background: #744F82; transform: scale(1.02); box-shadow: 0 5px 15px rgba(154, 110, 171, 0.3); }
+    .game-play-btn.locked { background: #64748b; }
+    .game-play-btn.locked:hover { background: #475569; }
+    
+    /* Modal Styles */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; border-radius: 16px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; font-size: 2rem; cursor: pointer; color: #718096; line-height: 1; background: none; border: none; z-index: 10; }
+    .modal-close:hover { color: #39455A; }
+    .modal-header { padding: 2rem 2rem 1rem; border-bottom: 2px solid #e2e8f0; }
+    .modal-header h2 { font-size: 1.5rem; margin: 0; }
+    .modal-body { padding: 2rem; }
+    .modal-game-display { text-align: center; margin-bottom: 1.5rem; }
+    .modal-game-icon { font-size: 4rem; margin-bottom: 1rem; }
+    .modal-game-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; color: #39455A; }
+    .modal-game-desc { color: #718096; }
+    .modal-price-box { background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+    .price-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .price-row:last-child { margin-bottom: 0; }
+    .modal-note { font-size: 0.875rem; color: #718096; margin-top: 1rem; padding: 1rem; background: #fef3c7; border-radius: 8px; border: 1px solid #fbbf24; }
+    .modal-actions { display: flex; gap: 1rem; margin-top: 2rem; }
+    .modal-actions button { flex: 1; padding: 0.75rem; border: none; border-radius: 8px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+    .btn-cancel { background: #e2e8f0; color: #39455A; }
+    .btn-cancel:hover { background: #cbd5e0; }
+    .btn-purchase { background: #9A6EAB; color: white; }
+    .btn-purchase:hover { background: #744F82; }
+    
+    .quick-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .stat-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .stat-emoji { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .stat-title { font-weight: 600; color: #39455A; margin-bottom: 0.25rem; }
+    .stat-text { font-size: 0.875rem; color: #718096; }
+    
+    /* Success Message */
+    .success-message {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: #10b981;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        z-index: 2000;
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @media (max-width: 768px) {
+        .game-lobby { padding: 1rem 0.5rem; }
+        .header-top { flex-direction: column; align-items: flex-start; }
+        .games-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<div class="game-lobby">
+    <header class="game-header">
+        <div class="header-top">
+            <div class="header-title-section">
+                <div class="game-icon-box">
+                    <i class="bi bi-controller"></i>
+                </div>
+                <div class="header-title">
+                    <h1>FriendLink Games</h1>
+                    <p>Connect, play, and make lasting friendships</p>
+                </div>
+            </div>
+            <button onclick="window.location.href='{{ url_for('main.game_profile') }}'" class="btn btn-outline-secondary">
+                <i class="bi bi-person"></i> {{ current_user.username }}
+            </button>
+        </div>
+
+        <div class="user-stats-card">
+            <div class="user-welcome">
+                <span class="user-avatar-emoji">👋</span>
+                <span class="fw-medium">Welcome back, {{ current_user.username }}!</span>
+            </div>
+            <div class="user-stats">
+                <div class="stat-item">
+                    <i class="bi bi-people"></i>
+                    <span>12 friends</span>
+                </div>
+                <div class="stat-item">
+                    <i class="bi bi-controller"></i>
+                    <span>45 games played</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="games-main">
+        <!-- Free Games Section -->
+        <div class="games-section">
+            <div class="games-intro">
+                <h2>Free Games</h2>
+                <p>Start playing right away with these free games!</p>
+            </div>
+            <div class="games-grid">
+                <a href="{{ url_for('main.two_truths_game') }}" class="game-card">
+                    <div class="game-card-header">
+                        <div class="game-emoji">🤔</div>
+                        <h3 class="game-title">2 Truths 1 Lie</h3>
+                        <p class="game-description">Share three statements about yourself - can others spot the lie?</p>
+                    </div>
+                    <div class="game-badges">
+                        <span class="game-badge">👥 2-8 players</span>
+                        <span class="game-badge">⏱️ 5-10 min</span>
+                        <span class="game-badge">✨ Easy</span>
+                    </div>
+                    <button class="game-play-btn">🚀 Play Now</button>
+                </a>
+
+                <a href="{{ url_for('main.would_you_rather') }}" class="game-card">
+                    <div class="game-card-header">
+                        <div class="game-emoji">🤷</div>
+                        <h3 class="game-title">Would You Rather</h3>
+                        <p class="game-description">Make tough choices and discover what matters to your friends!</p>
+                    </div>
+                    <div class="game-badges">
+                        <span class="game-badge">👥 2+ players</span>
+                        <span class="game-badge">⏱️ 3-15 min</span>
+                        <span class="game-badge">✨ Easy</span>
+                    </div>
+                    <button class="game-play-btn">🚀 Play Now</button>
+                </a>
+
+                <a href="{{ url_for('main.story_building') }}" class="game-card">
+                    <div class="game-card-header">
+                        <div class="game-emoji">📚</div>
+                        <h3 class="game-title">Story Building</h3>
+                        <p class="game-description">Collaborate in teams to create amazing stories together!</p>
+                    </div>
+                    <div class="game-badges">
+                        <span class="game-badge">👥 4-6 players</span>
+                        <span class="game-badge">⏱️ 10-15 min</span>
+                        <span class="game-badge">✨ Easy</span>
+                    </div>
+                    <button class="game-play-btn">🚀 Play Now</button>
+                </a>
+            </div>
+        </div>
+
+        <!-- Premium Games Section -->
+        <div class="games-section">
+            <div class="games-intro">
+                <h2>
+                    Premium Games
+                    <span class="premium-badge">
+                        <i class="bi bi-stars"></i> Premium
+                    </span>
+                </h2>
+                <p>Unlock these games for even more fun! (Demo - Instant Unlock)</p>
+                
+                
+            <div class="games-grid" id="premiumGamesGrid">
+                <!-- Premium games loaded by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-emoji">🎯</div>
+                <h3 class="stat-title">Fun & Easy</h3>
+                <p class="stat-text">No complex rules, just pure fun</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-emoji">🤝</div>
+                <h3 class="stat-title">Make Friends</h3>
+                <p class="stat-text">Connect with like-minded people</p>
+            </div>
+            <div class="stat-card">
+                <div class="stat-emoji">⚡</div>
+                <h3 class="stat-title">Instant Play</h3>
+                <p class="stat-text">Jump in and start playing right away</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Purchase Modal -->
+<div id="purchaseModal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closePurchaseModal()">&times;</button>
+        <div class="modal-header">
+            <h2>🔓 Unlock Premium Game</h2>
+        </div>
+        <div class="modal-body" id="modalGameInfo"></div>
+    </div>
+</div>
+
+<script>
+let unlockedGames = [];
+let selectedGameForPurchase = null;
+
+const premiumGames = [
+    {
+        id: 'never-have-i-ever',
+        title: 'Never Have I Ever',
+        description: 'Discover shared experiences and unique stories in this classic game!',
+        icon: '🙈',
+        players: '2-8 players',
+        duration: '5-15 min',
+        difficulty: 'Easy',
+        price: '$2.99',
+        url: '{{ url_for("main.premium_never_have_i_ever") }}'
+    },
+    {
+        id: 'caption-this',
+        title: 'Caption This',
+        description: 'Write the funniest captions for wacky scenarios and vote for winners!',
+        icon: '💬',
+        players: '2-8 players',
+        duration: '5-15 min',
+        difficulty: 'Easy',
+        price: '$2.99',
+        url: '{{ url_for("main.premium_caption_this") }}'
+    },
+    {
+        id: 'rapid-fire',
+        title: 'Rapid Fire',
+        description: 'Quick questions, fast answers! Get to know everyone in record time!',
+        icon: '⚡',
+        players: '2-8 players',
+        duration: '3-10 min',
+        difficulty: 'Easy',
+        price: '$2.99',
+        url: '{{ url_for("main.premium_rapid_fire") }}'
+    }
+];
+
+// Load unlocked games
+async function loadUnlockedGames() {
+    try {
+        const response = await fetch('/api/unlocked-games');
+        if (!response.ok) {
+            console.error('Failed to load unlocked games');
+            unlockedGames = [];
+        } else {
+            const data = await response.json();
+            unlockedGames = data.unlockedGames || [];
+        }
+        renderPremiumGames();
+    } catch (error) {
+        console.error('Error:', error);
+        unlockedGames = [];
+        renderPremiumGames();
+    }
+}
+
+function renderPremiumGames() {
+    const grid = document.getElementById('premiumGamesGrid');
+    
+    grid.innerHTML = premiumGames.map((game, index) => {
+        const isUnlocked = unlockedGames.includes(game.id);
+        
+        return `
+            <div class="game-card premium ${isUnlocked ? '' : 'locked'}" data-game-id="${game.id}" data-game-index="${index}">
+                ${!isUnlocked ? `<div class="lock-badge"><i class="bi bi-lock"></i> ${game.price}</div>` : ''}
+                ${isUnlocked ? '<div class="unlocked-badge">✓ Unlocked</div>' : ''}
+                
+                <div class="game-card-header">
+                    <div class="game-emoji">${game.icon}</div>
+                    <h3 class="game-title">${game.title}</h3>
+                    <p class="game-description">${game.description}</p>
+                </div>
+                <div class="game-badges">
+                    <span class="game-badge">👥 ${game.players}</span>
+                    <span class="game-badge">⏱️ ${game.duration}</span>
+                    <span class="game-badge">✨ ${game.difficulty}</span>
+                </div>
+                <button class="game-play-btn ${isUnlocked ? '' : 'locked'}" data-game-btn="${game.id}">
+                    ${isUnlocked ? '🚀 Play Now' : `<i class="bi bi-lock"></i> Unlock for ${game.price}`}
+                </button>
+            </div>
+        `;
+    }).join('');
+    
+    // Add click listeners to cards
+    document.querySelectorAll('.game-card.premium').forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Don't trigger if clicking the button directly
+            if (e.target.closest('.game-play-btn')) {
+                return;
+            }
+            
+            const gameId = this.getAttribute('data-game-id');
+            const isUnlocked = unlockedGames.includes(gameId);
+            const game = premiumGames.find(g => g.id === gameId);
+            
+            console.log('🎮 Card clicked:', gameId, 'Unlocked:', isUnlocked);
+            
+            if (isUnlocked) {
+                console.log('✅ Game is unlocked, redirecting to:', game.url);
+                window.location.href = game.url;
+            } else {
+                console.log('🔒 Game is locked, opening modal');
+                openPurchaseModal(gameId);
+            }
+        });
+    });
+    
+    // Add click listeners to buttons
+    document.querySelectorAll('.game-play-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent card click
+            
+            const gameId = this.getAttribute('data-game-btn');
+            const isUnlocked = unlockedGames.includes(gameId);
+            const game = premiumGames.find(g => g.id === gameId);
+            
+            console.log('🎯 Button clicked:', gameId, 'Unlocked:', isUnlocked);
+            
+            if (isUnlocked) {
+                console.log('✅ Redirecting to game:', game.url);
+                window.location.href = game.url;
+            } else {
+                console.log('🔒 Opening purchase modal');
+                openPurchaseModal(gameId);
+            }
+        });
+    });
+    
+    console.log('✅ Rendered', document.querySelectorAll('.game-card.premium').length, 'premium games');
+}
+
+function openPurchaseModal(gameId) {
+    console.log('🔓 Opening purchase modal for:', gameId);
+    // alert('Modal opening for: ' + gameId); // Debug alert
+    
+    const game = premiumGames.find(g => g.id === gameId);
+    if (!game) {
+        console.error('Game not found:', gameId);
+        return;
+    }
+    
+    selectedGameForPurchase = gameId;
+    console.log('Selected game:', selectedGameForPurchase);
+    
+    const modalInfo = document.getElementById('modalGameInfo');
+    modalInfo.innerHTML = `
+        <div class="modal-game-display">
+            <div class="modal-game-icon">${game.icon}</div>
+            <h3 class="modal-game-title">${game.title}</h3>
+            <p class="modal-game-desc">${game.description}</p>
+        </div>
+        <div class="modal-price-box">
+            <div class="price-row">
+                <span>Price:</span>
+                <strong>${game.price}</strong>
+            </div>
+            <div class="price-row">
+                <span>Players:</span>
+                <strong>${game.players}</strong>
+            </div>
+            <div class="price-row">
+                <span>Duration:</span>
+                <strong>${game.duration}</strong>
+            </div>
+        </div>
+        <p class="modal-note">
+            🎮 <strong>Demo Mode:</strong> Click "Unlock" to instantly unlock this game! No payment required for this demo.
+        </p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closePurchaseModal()">Cancel</button>
+            <button class="btn-purchase" onclick="confirmPurchase()">
+                <i class="bi bi-unlock"></i> Unlock Now (Demo)
+            </button>
+        </div>
+    `;
+    
+    const modal = document.getElementById('purchaseModal');
+    modal.classList.add('active');
+    console.log('✅ Modal should be visible now');
+}
+
+function closePurchaseModal() {
+    document.getElementById('purchaseModal').classList.remove('active');
+    selectedGameForPurchase = null;
+}
+
+async function confirmPurchase() {
+    if (!selectedGameForPurchase) return;
+    
+    console.log('🛒 Starting purchase for:', selectedGameForPurchase);
+    
+    const purchaseBtn = document.querySelector('.btn-purchase');
+    purchaseBtn.disabled = true;
+    purchaseBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Unlocking...';
+    
+    try {
+        const response = await fetch('/api/purchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ game_id: selectedGameForPurchase })
+        });
+        
+        const data = await response.json();
+        console.log('📦 Purchase response:', data);
+        
+        if (response.ok && data.success) {
+            // Add to local unlocked games immediately
+            if (!unlockedGames.includes(selectedGameForPurchase)) {
+                unlockedGames.push(selectedGameForPurchase);
+                console.log('✅ Added to unlockedGames:', unlockedGames);
+            }
+            
+            // Show success message
+            showSuccessMessage('🎉 Game unlocked successfully!');
+            
+            // Close modal
+            closePurchaseModal();
+            
+            // Re-render the games grid with updated unlock status
+            console.log('🔄 Re-rendering games...');
+            renderPremiumGames();
+            
+            // Optional: Reload from server to confirm
+            await loadUnlockedGames();
+            console.log('🔄 Reloaded from server:', unlockedGames);
+        } else {
+            alert(data.error || 'Failed to unlock game');
+            purchaseBtn.disabled = false;
+            purchaseBtn.innerHTML = '<i class="bi bi-unlock"></i> Unlock Now (Demo)';
+        }
+    } catch (error) {
+        console.error('❌ Purchase error:', error);
+        alert('Failed to unlock game. Check console for details.');
+        purchaseBtn.disabled = false;
+        purchaseBtn.innerHTML = '<i class="bi bi-unlock"></i> Unlock Now (Demo)';
+    }
+}
+
+function showSuccessMessage(message) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'success-message';
+    msgDiv.innerHTML = `<i class="bi bi-check-circle"></i> ${message}`;
+    document.body.appendChild(msgDiv);
+    
+    setTimeout(() => {
+        msgDiv.remove();
+    }, 3000);
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('purchaseModal');
+    if (event.target === modal) {
+        closePurchaseModal();
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', loadUnlockedGames);
+
+// DEBUG FUNCTIONS
+function testUnlock() {
+    console.log('🧪 TEST: Manually unlocking never-have-i-ever');
+    if (!unlockedGames.includes('never-have-i-ever')) {
+        unlockedGames.push('never-have-i-ever');
+    }
+    console.log('Current unlocked games:', unlockedGames);
+    renderPremiumGames();
+    alert('Test unlock complete! Check if card updated.');
+}
+
+function checkState() {
+    console.log('📊 Current State:');
+    console.log('- unlockedGames:', unlockedGames);
+    console.log('- selectedGameForPurchase:', selectedGameForPurchase);
+    alert(`Unlocked games: ${unlockedGames.join(', ') || 'none'}`);
+}
+
+function forceUnlockAll() {
+    console.log('🔓 Force unlocking all games...');
+    unlockedGames = ['never-have-i-ever', 'caption-this', 'rapid-fire'];
+    renderPremiumGames();
+    alert('All games unlocked! Try clicking them now.');
+}
+</script>
+{% endblock content %}

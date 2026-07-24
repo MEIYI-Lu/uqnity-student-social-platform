@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+<script defer src="{{ url_for('static', filename='app.js') }}"></script>
+<section class="section">
+  <h2>Chats</h2>
+
+  <div class="chat-layout">
+    <div class="chat-list list-fixed" style="position:relative;">
+      <div class="tabbar">
+        <a class="tab" href="{{ url_for('main.chats_private') }}">Private Chats</a>
+        <a class="tab active" href="{{ url_for('main.chats_rooms') }}">Chatrooms</a>
+        <a class="tab" href="{{ url_for('main.chats_channels') }}">Channels</a>
+      </div>
+
+      <ul class="threads" id="roomList">
+        {% for r in rooms %}
+        <li class="thread" data-kind="room" data-id="{{r.id}}" data-name="{{r.name}}">
+          <div class="avatar placeholder">G</div>
+          <div class="meta">
+            <div class="t-title">{{ r.name }}</div>
+            <div class="t-sub">Group chat</div>
+          </div>
+          <div class="t-time">9:30 AM</div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="chat-panel chat-panel-sticky panel-fixed">
+      <div class="room-title">
+        <div id="convTitle">Select a conversation</div>
+        <div id="convSub" class="sub"></div>
+      </div>
+
+      <div class="scroll-stack" id="chatScroll">
+        <div id="messages" class="messages"></div>
+      </div>
+
+      <form id="composer" class="composer">
+        <button id="leftBtn" class="icon-btn" type="button">+</button>
+        <input id="msgInput" placeholder="Type your message" />
+        <button class="icon-btn" title="Send">&#10148;</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<style>
+  .tabbar .tab{ font-size:14px; padding:6px 14px; white-space:nowrap; line-height:1.2; }
+
+  .list-fixed{ height:72vh; overflow:auto; }
+  .panel-fixed{ height:72vh; }
+
+  .chat-panel-sticky{ display:flex; flex-direction:column; min-height:0; }
+  .chat-panel-sticky .room-title{ flex:0 0 auto; }
+  .chat-panel-sticky .scroll-stack{
+    flex:1 1 auto; min-height:0; overflow:auto; padding-bottom:8px;
+  }
+
+  .messages:empty{ display:none; }
+</style>
+{% endblock %}

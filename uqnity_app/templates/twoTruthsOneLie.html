@@ -1,0 +1,804 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+  }
+
+  .game-container {
+      min-height: 100vh;
+      padding: 2rem 1rem;
+  }
+
+  .game-header {
+      max-width: 900px;
+      margin: 0 auto 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+  }
+
+  .back-btn {
+      padding: 0.5rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .back-btn:hover {
+      background: #f7fafc;
+  }
+
+  .game-title-section {
+      flex: 1;
+  }
+
+  .game-title-section h1 {
+      font-size: 2rem;
+      margin: 0 0 0.25rem 0;
+  }
+
+  .game-subtitle {
+      color: #718096;
+      margin: 0;
+  }
+
+  .game-card {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .card-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+  }
+
+  .card-description {
+      color: #718096;
+      margin-bottom: 1.5rem;
+  }
+
+  .player-count-selector {
+      margin-bottom: 2rem;
+  }
+
+  .player-count-selector label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+  }
+
+  .count-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+  }
+
+  .count-btn {
+      width: 3rem;
+      height: 3rem;
+      border: 2px solid #e2e8f0;
+      background: white;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+  }
+
+  .count-btn:hover {
+      border-color: #9A6EAB;
+  }
+
+  .count-btn.active {
+      background: #9A6EAB;
+      color: white;
+      border-color: #9A6EAB;
+  }
+
+  .players-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+  }
+
+  .player-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #f7fafc;
+      border-radius: 8px;
+  }
+
+  .player-avatar {
+      font-size: 1.25rem;
+  }
+
+  .how-to-play {
+      background: #EBF4FF;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+  }
+
+  .how-to-play h3 {
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+  }
+
+  .how-to-play ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      font-size: 0.875rem;
+      color: #4A5568;
+  }
+
+  .how-to-play li {
+      margin-bottom: 0.25rem;
+  }
+
+  .start-btn {
+      width: 100%;
+      padding: 1rem;
+      background: #9A6EAB;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 1.125rem;
+      cursor: pointer;
+      transition: all 0.3s;
+  }
+
+  .start-btn:hover {
+      background: #744F82;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(154, 110, 171, 0.3);
+  }
+
+  .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.5rem 0;
+  }
+
+  .progress-fill {
+      height: 100%;
+      background: #9A6EAB;
+      transition: width 0.3s;
+  }
+
+  .statement-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+  }
+
+  .statement-input:focus {
+      outline: none;
+      border-color: #9A6EAB;
+  }
+
+  .statement-btn {
+      width: 100%;
+      text-align: left;
+      padding: 1rem;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 0.5rem;
+  }
+
+  .statement-btn:hover {
+      border-color: #9A6EAB;
+      background: #f7fafc;
+  }
+
+  .result-item {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+  }
+
+  .rank-1 {
+      background: linear-gradient(135deg, #FFF9E6 0%, #FFE5B4 100%);
+      border: 2px solid #FFD700;
+  }
+
+  .rank-2 {
+      background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 100%);
+      border: 2px solid #C0C0C0;
+  }
+
+  .rank-3 {
+      background: linear-gradient(135deg, #FFF0E6 0%, #FFD4B4 100%);
+      border: 2px solid #CD7F32;
+  }
+
+  .badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+  }
+
+  .badge-primary {
+      background: #9A6EAB;
+      color: white;
+  }
+
+  .badge-secondary {
+      background: #e2e8f0;
+      color: #4A5568;
+  }
+
+  .hidden {
+      display: none;
+  }
+</style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<div class="game-container">
+  <!-- Setup Phase -->
+  <div id="setupPhase">
+    <div class="game-header">
+      <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="game-title-section">
+        <h1>🤔 2 Truths 1 Lie</h1>
+        <p class="game-subtitle">Share three statements - can others spot the lie?</p>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="card-header">
+        <h2>Game Setup</h2>
+        <p class="card-description">Choose how many players will participate</p>
+      </div>
+
+      <div class="player-count-selector">
+        <label>Number of Players</label>
+        <div class="count-buttons">
+          <button class="count-btn" onclick="setPlayerCount(2)">2</button>
+          <button class="count-btn" onclick="setPlayerCount(3)">3</button>
+          <button class="count-btn active" onclick="setPlayerCount(4)">4</button>
+          <button class="count-btn" onclick="setPlayerCount(5)">5</button>
+          <button class="count-btn" onclick="setPlayerCount(6)">6</button>
+          <button class="count-btn" onclick="setPlayerCount(7)">7</button>
+          <button class="count-btn" onclick="setPlayerCount(8)">8</button>
+        </div>
+      </div>
+
+      <div>
+        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Players</label>
+        <div class="players-grid" id="playersGrid">
+          <!-- Players will be inserted here by JavaScript -->
+        </div>
+      </div>
+
+      <div class="how-to-play">
+        <h3>How to Play:</h3>
+        <ul>
+          <li>• Each player writes 3 statements about themselves</li>
+          <li>• 2 statements must be TRUE, 1 must be FALSE</li>
+          <li>• Other players try to guess which one is the lie</li>
+          <li>• Earn points for correct guesses and fooling others!</li>
+        </ul>
+      </div>
+
+      <button class="start-btn" onclick="startGame()">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Submit Phase -->
+  <div id="submitPhase" class="hidden">
+    <div class="game-header">
+      <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="game-title-section">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span id="currentPlayerAvatar" style="font-size: 1.5rem;">👤</span>
+          <h1 id="currentPlayerName" style="font-size: 1.5rem; margin: 0;">Your Turn!</h1>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+        </div>
+        <p class="game-subtitle" id="progressText">Player 1 of 4</p>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="card-header">
+        <h2>Write Your Statements</h2>
+        <p class="card-description">Write 3 statements about yourself. Make 2 of them TRUE and 1 FALSE. Try to make the lie believable!</p>
+      </div>
+
+      <div id="statementInputs">
+        <div style="margin-bottom: 2rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Statement 1</label>
+          <input type="text" class="statement-input" id="statement1" placeholder="Write statement 1...">
+
+          <label style="display: block; font-weight: 500; margin: 1rem 0 0.5rem 0;">Statement 2</label>
+          <input type="text" class="statement-input" id="statement2" placeholder="Write statement 2...">
+
+          <label style="display: block; font-weight: 500; margin: 1rem 0 0.5rem 0;">Statement 3</label>
+          <input type="text" class="statement-input" id="statement3" placeholder="Write statement 3...">
+        </div>
+
+        <div id="lieSelection" class="hidden">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.75rem;">Which statement is the LIE?</label>
+          <button class="statement-btn" onclick="submitLie(0)">
+            <span style="font-weight: 600; margin-right: 0.5rem;">1.</span>
+            <span id="preview1"></span>
+          </button>
+          <button class="statement-btn" onclick="submitLie(1)">
+            <span style="font-weight: 600; margin-right: 0.5rem;">2.</span>
+            <span id="preview2"></span>
+          </button>
+          <button class="statement-btn" onclick="submitLie(2)">
+            <span style="font-weight: 600; margin-right: 0.5rem;">3.</span>
+            <span id="preview3"></span>
+          </button>
+        </div>
+      </div>
+
+      <div id="waitingMessage" class="hidden">
+        <div style="text-align: center; padding: 3rem 1rem;">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">✍️</div>
+          <h3 style="margin-bottom: 0.5rem;" id="waitingPlayerName">Player</h3>
+          <p style="color: #718096;">is writing their statements...</p>
+          <div style="margin-top: 2rem;">
+            <i class="bi bi-hourglass-split" style="font-size: 2rem; animation: spin 2s linear infinite;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guessing Phase - User's Turn -->
+  <div id="guessingPhaseUser" class="hidden">
+    <div class="game-header">
+      <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="game-title-section">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span id="guesserAvatar" style="font-size: 1.5rem;">👤</span>
+          <h1 style="font-size: 1.5rem; margin: 0;">Your Turn to Guess!</h1>
+        </div>
+        <p class="game-subtitle" id="guessingProgress">Guess which statement is the lie</p>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span id="submitterAvatar" style="font-size: 1.25rem;">👤</span>
+          <div>
+            <h2 style="margin: 0; font-size: 1.25rem;" id="submitterName">Player's Statements</h2>
+            <p style="color: #718096; margin: 0; font-size: 0.875rem;">Which one do you think is the lie?</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="guessButtonsContainer">
+        <!-- Guess buttons will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Guessing Phase - AI Turn -->
+  <div id="guessingPhaseAI" class="hidden">
+    <div class="game-header">
+      <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="game-title-section">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <span id="aiGuesserAvatar" style="font-size: 1.5rem;">👤</span>
+          <h1 style="font-size: 1.5rem; margin: 0;" id="aiGuesserName">AI's Guess</h1>
+        </div>
+        <p class="game-subtitle" id="aiGuessingProgress">Thinking...</p>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <span id="aiSubmitterAvatar" style="font-size: 1.25rem;">👤</span>
+          <div>
+            <h2 style="margin: 0; font-size: 1.25rem;" id="aiSubmitterName">Player's Statements</h2>
+            <p style="color: #718096; margin: 0; font-size: 0.875rem;" id="aiThinkingText">is thinking about which one is the lie...</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: center; padding: 2rem 0; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <i class="bi bi-hourglass-split" style="animation: spin 2s linear infinite;"></i>
+          <span id="aiDecidingText">AI is deciding...</span>
+        </div>
+      </div>
+
+      <div id="aiStatementsContainer">
+        <!-- AI viewing statements will be inserted here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Phase -->
+  <div id="resultsPhase" class="hidden">
+    <div class="game-header">
+      <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+        <i class="bi bi-arrow-left"></i>
+      </button>
+      <div class="game-title-section">
+        <h1>🏆 Game Complete!</h1>
+        <p class="game-subtitle">Great game everyone!</p>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="card-header">
+        <h2>Final Scores</h2>
+        <p class="card-description">See how everyone performed</p>
+      </div>
+
+      <div id="resultsContainer">
+        <!-- Results will be inserted here -->
+      </div>
+
+      <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+        <button class="start-btn" style="background: white; color: #9A6EAB; border: 2px solid #9A6EAB;" onclick="resetGame()">
+          <i class="bi bi-arrow-clockwise"></i> Play Again
+        </button>
+        <button class="start-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+          Back to Lobby
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let playerCount = 4;
+  let currentPlayer = 0;
+  let players = [];
+  let submissions = [];
+
+  const mockPlayers = [
+      { name: '{{ current_user.username }}', avatar: '👤' },
+      { name: 'Sarah', avatar: '🌟' },
+      { name: 'Mike', avatar: '🎯' },
+      { name: 'Emma', avatar: '🎨' },
+      { name: 'Jake', avatar: '⚡' },
+      { name: 'Lily', avatar: '🌸' },
+      { name: 'Tom', avatar: '🎪' },
+      { name: 'Zoe', avatar: '🦋' }
+  ];
+
+  function setPlayerCount(count) {
+      playerCount = count;
+      players = mockPlayers.slice(0, count);
+
+      document.querySelectorAll('.count-btn').forEach(btn => {
+          btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      updatePlayersGrid();
+  }
+
+  function updatePlayersGrid() {
+      const grid = document.getElementById('playersGrid');
+      grid.innerHTML = players.map(p => `
+          <div class="player-item">
+              <span class="player-avatar">${p.avatar}</span>
+              <span>${p.name}</span>
+          </div>
+      `).join('');
+  }
+
+  function startGame() {
+      document.getElementById('setupPhase').classList.add('hidden');
+      document.getElementById('submitPhase').classList.remove('hidden');
+      currentPlayer = 0;
+      submissions = [];
+      updateSubmitPhase();
+  }
+
+  function updateSubmitPhase() {
+      const player = players[currentPlayer];
+      const isUserTurn = player.name === '{{ current_user.username }}';
+
+      document.getElementById('currentPlayerAvatar').textContent = player.avatar;
+      document.getElementById('progressBar').style.width = `${((currentPlayer + 1) / players.length) * 100}%`;
+      document.getElementById('progressText').textContent = `Player ${currentPlayer + 1} of ${players.length}`;
+
+      if (isUserTurn) {
+          // User's turn - show input form
+          document.getElementById('currentPlayerName').textContent = `Your Turn, ${player.name}!`;
+          document.getElementById('statementInputs').classList.remove('hidden');
+          document.getElementById('waitingMessage').classList.add('hidden');
+
+          // Clear inputs
+          document.getElementById('statement1').value = '';
+          document.getElementById('statement2').value = '';
+          document.getElementById('statement3').value = '';
+          document.getElementById('lieSelection').classList.add('hidden');
+      } else {
+          // Other player's turn - show waiting message
+          document.getElementById('currentPlayerName').textContent = `${player.name}'s Turn`;
+          document.getElementById('statementInputs').classList.add('hidden');
+          document.getElementById('waitingMessage').classList.remove('hidden');
+          document.getElementById('waitingPlayerName').textContent = player.name;
+
+          // Auto-submit for AI players after 2 seconds
+          setTimeout(() => {
+              autoSubmitForAI();
+          }, 2000);
+      }
+  }
+
+  function autoSubmitForAI() {
+      const mockStatements = [
+          ['I once met a celebrity at a coffee shop', 'I can speak three languages fluently', 'I have never been on an airplane'],
+          ['I won a dance competition in college', 'I have a pet snake named Buddy', 'I once ate bugs on purpose'],
+          ['I can solve a Rubik\'s cube in under 2 minutes', 'I have been to all 50 US states', 'I once slept through an earthquake'],
+          ['I have a black belt in karate', 'I worked as a street performer for a summer', 'I have never broken a bone'],
+          ['I can play 4 musical instruments', 'I once got locked in a zoo overnight', 'I have never eaten pizza'],
+          ['I won $1000 in a scratch-off ticket', 'I can juggle with my eyes closed', 'I have never seen the ocean'],
+          ['I once performed stand-up comedy', 'I have been struck by lightning', 'I can recite the alphabet backwards in 10 seconds']
+      ];
+
+      const playerStatements = mockStatements[currentPlayer % mockStatements.length];
+      const lieIndex = Math.floor(Math.random() * 3);
+
+      const statementsObj = playerStatements.map((text, index) => ({
+          text: text,
+          isLie: index === lieIndex
+      }));
+
+      submissions.push({
+          player: players[currentPlayer],
+          statements: playerStatements,
+          lieIndex: lieIndex
+      });
+
+      currentPlayer++;
+
+      if (currentPlayer < players.length) {
+          updateSubmitPhase();
+      } else {
+          startGuessingPhase();
+      }
+  }
+
+  // Check if all statements are filled
+  document.querySelectorAll('.statement-input').forEach(input => {
+      input.addEventListener('input', () => {
+          const s1 = document.getElementById('statement1').value.trim();
+          const s2 = document.getElementById('statement2').value.trim();
+          const s3 = document.getElementById('statement3').value.trim();
+
+          if (s1.length > 5 && s2.length > 5 && s3.length > 5) {
+              document.getElementById('preview1').textContent = s1;
+              document.getElementById('preview2').textContent = s2;
+              document.getElementById('preview3').textContent = s3;
+              document.getElementById('lieSelection').classList.remove('hidden');
+          } else {
+              document.getElementById('lieSelection').classList.add('hidden');
+          }
+      });
+  });
+
+  function submitLie(lieIndex) {
+      const statements = [
+          document.getElementById('statement1').value,
+          document.getElementById('statement2').value,
+          document.getElementById('statement3').value
+      ];
+
+      submissions.push({
+          player: players[currentPlayer],
+          statements: statements,
+          lieIndex: lieIndex
+      });
+
+      currentPlayer++;
+
+      if (currentPlayer < players.length) {
+          updateSubmitPhase();
+      } else {
+          showResults();
+      }
+  }
+
+  function startGuessingPhase() {
+      // After all submissions, start guessing phase
+      currentPlayer = 0;
+      let currentGuesser = 0;
+      showGuessScreen(currentPlayer, currentGuesser);
+  }
+
+  function showGuessScreen(submissionIndex, guesserIndex) {
+      const submission = submissions[submissionIndex];
+      const guesser = players[guesserIndex];
+
+      // Skip if player is guessing their own statements
+      if (submission.player.name === guesser.name) {
+          if (guesserIndex < players.length - 1) {
+              showGuessScreen(submissionIndex, guesserIndex + 1);
+          } else if (submissionIndex < submissions.length - 1) {
+              showGuessScreen(submissionIndex + 1, 0);
+          } else {
+              showResults();
+          }
+          return;
+      }
+
+      // Check if it's the user's turn
+      const isUserTurn = guesser.name === '{{ current_user.username }}';
+
+      if (isUserTurn) {
+          showUserGuessPhase(submission, guesser, submissionIndex, guesserIndex);
+      } else {
+          showAIGuessPhase(submission, guesser, submissionIndex, guesserIndex);
+      }
+  }
+
+  function showUserGuessPhase(submission, guesser, submissionIndex, guesserIndex) {
+      document.getElementById('submitPhase').classList.add('hidden');
+      document.getElementById('guessingPhaseAI').classList.add('hidden');
+      document.getElementById('guessingPhaseUser').classList.remove('hidden');
+
+      document.getElementById('guesserAvatar').textContent = guesser.avatar;
+      document.getElementById('guessingProgress').textContent =
+          `Guess which of ${submission.player.name}'s statements is the lie (${submissionIndex + 1}/${submissions.length})`;
+      document.getElementById('submitterAvatar').textContent = submission.player.avatar;
+      document.getElementById('submitterName').textContent = `${submission.player.name}'s Statements`;
+
+      const buttonsHTML = submission.statements.map((stmt, idx) => `
+          <button class="statement-btn" onclick="makeGuess(${submissionIndex}, ${guesserIndex}, ${idx})"
+                  style="border-color: #9A6EAB;">
+              <span style="font-weight: 600; margin-right: 0.5rem;">${idx + 1}.</span>
+              ${stmt}
+          </button>
+      `).join('');
+
+      document.getElementById('guessButtonsContainer').innerHTML = buttonsHTML;
+  }
+
+  function showAIGuessPhase(submission, guesser, submissionIndex, guesserIndex) {
+      document.getElementById('submitPhase').classList.add('hidden');
+      document.getElementById('guessingPhaseUser').classList.add('hidden');
+      document.getElementById('guessingPhaseAI').classList.remove('hidden');
+
+      document.getElementById('aiGuesserAvatar').textContent = guesser.avatar;
+      document.getElementById('aiGuesserName').textContent = `${guesser.name}'s Guess`;
+      document.getElementById('aiGuessingProgress').textContent =
+          `Guessing ${submission.player.name}'s lie (${submissionIndex + 1}/${submissions.length})`;
+      document.getElementById('aiSubmitterAvatar').textContent = submission.player.avatar;
+      document.getElementById('aiSubmitterName').textContent = `${submission.player.name}'s Statements`;
+      document.getElementById('aiThinkingText').textContent =
+          `${guesser.name} is thinking about which one is the lie...`;
+      document.getElementById('aiDecidingText').textContent = `${guesser.name} is deciding...`;
+
+      const statementsHTML = submission.statements.map((stmt, idx) => `
+          <div style="padding: 1rem; border: 2px dashed #e2e8f0; border-radius: 8px; background: #f7fafc; margin-bottom: 0.5rem;">
+              <span style="font-weight: 600; margin-right: 0.5rem;">${idx + 1}.</span>
+              ${stmt}
+          </div>
+      `).join('');
+
+      document.getElementById('aiStatementsContainer').innerHTML = statementsHTML;
+
+      // AI makes a random guess after 2 seconds
+      setTimeout(() => {
+          const randomGuess = Math.floor(Math.random() * 3);
+          makeGuess(submissionIndex, guesserIndex, randomGuess);
+      }, 2000);
+  }
+
+  function makeGuess(submissionIndex, guesserIndex, guessedIndex) {
+      // Move to next guesser or submission
+      if (guesserIndex < players.length - 1) {
+          showGuessScreen(submissionIndex, guesserIndex + 1);
+      } else if (submissionIndex < submissions.length - 1) {
+          showGuessScreen(submissionIndex + 1, 0);
+      } else {
+          showResults();
+      }
+  }
+
+  function showResults() {
+      document.getElementById('submitPhase').classList.add('hidden');
+      document.getElementById('guessingPhaseUser').classList.add('hidden');
+      document.getElementById('guessingPhaseAI').classList.add('hidden');
+      document.getElementById('resultsPhase').classList.remove('hidden');
+
+      // Calculate mock scores
+      const scores = players.map((p, i) => ({
+          ...p,
+          score: Math.floor(Math.random() * 50) + 10
+      })).sort((a, b) => b.score - a.score);
+
+      const resultsHTML = `
+          <div class="game-header">
+              <button class="back-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+                  <i class="bi bi-arrow-left"></i>
+              </button>
+              <div class="game-title-section">
+                  <h1>🏆 Game Results</h1>
+                  <p class="game-subtitle">See how everyone did!</p>
+              </div>
+          </div>
+
+          <div class="game-card">
+              <div class="card-header">
+                  <h2>Final Scores</h2>
+              </div>
+
+              ${scores.map((p, i) => `
+                  <div class="result-item ${i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : ''}">
+                      <span style="font-size: 1.5rem; font-weight: 700; width: 2rem;">
+                          ${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
+                      </span>
+                      <span style="font-size: 1.25rem;">${p.avatar}</span>
+                      <span style="flex: 1; font-weight: 500;">${p.name}</span>
+                      <span class="badge ${i === 0 ? 'badge-primary' : 'badge-secondary'}">${p.score} points</span>
+                  </div>
+              `).join('')}
+
+              <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                  <button class="start-btn" style="background: white; color: #9A6EAB; border: 2px solid #9A6EAB;" onclick="resetGame()">
+                      <i class="bi bi-arrow-clockwise"></i> Play Again
+                  </button>
+                  <button class="start-btn" onclick="window.location.href='{{ url_for('main.game_menu') }}'">
+                      Back to Lobby
+                  </button>
+              </div>
+          </div>
+      `;
+
+      document.getElementById('resultsPhase').innerHTML = resultsHTML;
+  }
+
+  function resetGame() {
+      document.getElementById('resultsPhase').classList.add('hidden');
+      document.getElementById('setupPhase').classList.remove('hidden');
+      currentPlayer = 0;
+      submissions = [];
+  }
+
+  // Initialize
+  setPlayerCount(4);
+</script>
+
+{% endblock content %}

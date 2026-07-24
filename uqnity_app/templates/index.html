@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title if title else 'Welcome' }} - UQnity</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #d8c6f0 0%, #f4f4f4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 50px 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(93, 43, 126, 0.15);
+            max-width: 650px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #9A7BB0 0%, #7b45a0 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(93, 43, 126, 0.3);
+        }
+
+        h1 {
+            color: #5d2b7e;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #7b45a0;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .link {
+            display: inline-block;
+            padding: 14px 30px;
+            background: linear-gradient(135deg, #9A7BB0 0%, #7b45a0 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(93, 43, 126, 0.2);
+        }
+
+        .link:hover {
+            background: linear-gradient(135deg, #7b45a0 0%, #5d2b7e 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(93, 43, 126, 0.3);
+        }
+
+        .link.secondary {
+            background: white;
+            color: #9A7BB0;
+            border: 2px solid #9A7BB0;
+        }
+
+        .link.secondary:hover {
+            background: #f8f5fa;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        footer p {
+            font-size: 13px;
+            color: #aaa;
+            margin: 0;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .feature-item {
+            padding: 20px 10px;
+            background: #f8f5fa;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: #f0e6f6;
+            transform: translateY(-3px);
+        }
+
+        .feature-item i {
+            font-size: 32px;
+            color: #9A7BB0;
+            margin-bottom: 10px;
+        }
+
+        .feature-item p {
+            font-size: 14px;
+            margin: 0;
+            color: #666;
+            font-weight: 500;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 25px;
+            }
+
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .logo {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">UQ</div>
+        
+        <h1>Welcome to UQnity!</h1>
+        <p class="subtitle">Your platform for connecting with events and students</p>
+        
+        <p>Explore events, connect with students, join study groups, and get the support you need at UQ.</p>
+
+        <div class="features">
+            <div class="feature-item">
+                <p>📅<br>Events</p>
